@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Proto-Thon '26 Registration</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@7.12.15/dist/sweetalert2.all.min.js"></script>
+    <style>
+        /* --- BACKGROUNDS (Wormhole + Planets) - Adapted from proto-thon26.html --- */
+        :root {
+            --neon-blue: #00BFFF;
+        }
+
+        body {
+            margin: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+            color: #fff;
+            /* Default text color white for dark theme */
+            background-color: #000;
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
+        }
+
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        #starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -10;
+            background: #000;
+        }
+
+        .planet {
+            position: fixed;
+            border-radius: 50%;
+            z-index: -5;
+            pointer-events: none;
+        }
+
+        .planet-1 {
+            width: 300px;
+            height: 300px;
+            top: 15%;
+            right: -100px;
+            background: radial-gradient(circle at 30% 30%, #4facfe, #00f2fe, #000);
+            box-shadow: 0 0 60px rgba(0, 242, 254, 0.3);
+            opacity: 0.8;
+            transition: transform 0.1s linear;
+            animation: float 10s ease-in-out infinite;
+        }
+
+        .planet-2 {
+            width: 200px;
+            height: 200px;
+            bottom: 10%;
+            left: -50px;
+            background: radial-gradient(circle at 70% 30%, #ff0844, #ffb199, #000);
+            box-shadow: 0 0 50px rgba(255, 8, 68, 0.3);
+            opacity: 0.7;
+            transition: transform 0.1s linear;
+            animation: float 15s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        /* Container Styling for Dark Theme */
+        .form-container {
+            max-width: 600px;
+            margin: auto;
+            margin-top: 50px;
+            margin-bottom: 50px;
+            padding: 30px;
+            /* Glassmorphism effect */
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(0, 191, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            color: #fff;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-header h2 {
+            color: var(--neon-blue);
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(0, 191, 255, 0.5);
+        }
+
+        .form-header h4 {
+            color: #ddd;
+        }
+
+        /* Form Control overrides for dark theme */
+        .form-control {
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 1px solid #444;
+            color: #fff;
+        }
+
+        .form-control:focus {
+            background-color: rgba(0, 0, 0, 0.7);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 10px rgba(0, 191, 255, 0.3);
+            color: #fff;
+        }
+
+        /* Placeholder color */
+        .form-control::placeholder {
+            color: #aaa;
+        }
+
+        .btn-primary {
+            background-color: var(--neon-blue);
+            border-color: var(--neon-blue);
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: #0099CC;
+            border-color: #0099CC;
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        /* Checkbox & Link styles */
+        .form-check-label a {
+            color: var(--neon-blue);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Background Grid Animation (Matching proto-thon26.html) -->
+    <div style="position: fixed; inset: 0; z-index: -10; overflow: hidden; background: #030014;">
+        <!-- Overlay Gradient -->
+        <div
+            style="position: absolute; inset: 0; background: linear-gradient(to top, #030014, rgba(3,0,20,0.8), transparent); z-index: 1; pointer-events: none;">
+        </div>
+
+        <!-- 3D Grid Collage (Using Inline Styles for standalone compatibility) -->
+        <div style="
+            position: absolute; 
+            width: 150%; 
+            height: 150%; 
+            top: -25%; 
+            left: -25%; 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 1rem; 
+            opacity: 0.4; 
+            transform: rotateX(55deg) rotateY(0deg) rotateZ(-45deg); 
+            animation: scrollBg 60s linear infinite;
+        ">
+            <!-- Scroll Images -->
+            <img src="assets/bg/scroll_bg_1.png"
+                style="width: 100%; height: 16rem; object-fit: cover; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <img src="assets/bg/scroll_bg_2.png"
+                style="width: 100%; height: 16rem; object-fit: cover; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <img src="assets/bg/scroll_bg_3.png"
+                style="width: 100%; height: 16rem; object-fit: cover; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <img src="assets/bg/scroll_bg_4.png"
+                style="width: 100%; height: 16rem; object-fit: cover; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid rgba(255, 255, 255, 0.1);">
+
+            <img src="assets/bg/scroll_bg_5.png"
+                style="width: 100%; height: 16rem; object-fit: cover; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <img src="assets/bg/scroll_bg_1.png"
+                style="width: 100%; height: 16rem; object-fit: cover; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <img src="assets/bg/scroll_bg_2.png"
+                style="width: 100%; height: 16rem; object-fit: cover; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <img src="assets/bg/scroll_bg_3.png"
+                style="width: 100%; height: 16rem; object-fit: cover; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid rgba(255, 255, 255, 0.1);">
+
+            <img src="assets/bg/scroll_bg_4.png"
+                style="width: 100%; height: 16rem; object-fit: cover; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <img src="assets/bg/scroll_bg_5.png"
+                style="width: 100%; height: 16rem; object-fit: cover; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <img src="assets/bg/scroll_bg_1.png"
+                style="width: 100%; height: 16rem; object-fit: cover; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <img src="assets/bg/scroll_bg_2.png"
+                style="width: 100%; height: 16rem; object-fit: cover; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid rgba(255, 255, 255, 0.1);">
+        </div>
+    </div>
+
+    <style>
+        @keyframes scrollBg {
+            to {
+                transform: rotateX(55deg) rotateY(0deg) rotateZ(-45deg) translateY(-50%);
+            }
+        }
+    </style>
+
+
+
+    <div class="container" style="position: relative; z-index: 1;">
+        <div class="form-container">
+            <div class="form-header">
+                <h2 class="mb-2">Proto-Thon '26</h2>
+                <h4 class="">Registration Form</h4>
+            </div>
+
+            <!-- Registration Form -->
+            <form id="registration-form">
+
+                <!-- Team Leader Name -->
+                <div class="form-group">
+                    <label for="name">Team Leader Name:</label>
+                    <input class="form-control" type="text" id="name" name="teamLeaderName"
+                        placeholder="Enter Full Name" required />
+                </div>
+
+                <!-- Team Leader Email ID -->
+                <div class="form-group">
+                    <label for="email">Team Leader Email ID:</label>
+                    <input class="form-control" type="email" id="email" name="email" placeholder="Enter Email Address"
+                        required />
+                </div>
+
+                <!-- Team Leader Phone Number -->
+                <div class="form-group">
+                    <label for="contact">Team Leader Phone Number:</label>
+                    <input class="form-control" type="tel" id="contact" name="phone" placeholder="Enter Contact Number"
+                        required />
+                </div>
+
+                <!-- Year -->
+                <div class="form-group">
+                    <label for="year">Year:</label>
+                    <select class="form-control" id="year" name="year" required>
+                        <option value="" disabled selected hidden style="color:#aaa">Choose Year...</option>
+                        <option value="I" style="color:#000">I</option>
+                        <option value="II" style="color:#000">II</option>
+                        <option value="III" style="color:#000">III</option>
+                        <option value="IV" style="color:#000">IV</option>
+                    </select>
+                </div>
+
+                <!-- Department -->
+                <div class="form-group">
+                    <label for="department">Department:</label>
+                    <input class="form-control" type="text" id="department" name="department"
+                        placeholder="e.g. CSE, ECE, AI&DS" required />
+                </div>
+
+                <!-- College Name -->
+                <div class="form-group">
+                    <label for="college">College Name:</label>
+                    <input class="form-control" type="text" id="college" name="college" placeholder="Enter College Name"
+                        required />
+                </div>
+
+                <!-- City -->
+                <div class="form-group">
+                    <label for="city">City:</label>
+                    <input class="form-control" type="text" id="city" name="city" placeholder="Enter City" required />
+                </div>
+
+                <!-- State -->
+                <div class="form-group">
+                    <label for="state">State:</label>
+                    <input class="form-control" type="text" id="state" name="state" placeholder="Enter State"
+                        required />
+                </div>
+
+                <!-- Team Size -->
+                <div class="form-group">
+                    <label for="team_size">Team Size (Including Leader):</label>
+                    <select class="form-control" id="team_size" name="teamSize" required>
+                        <option value="" disabled selected hidden style="color:#aaa">Choose Team Size...</option>
+                        <option value="2" style="color:#000">2 Members</option>
+                        <option value="3" style="color:#000">3 Members</option>
+                        <option value="4" style="color:#000">4 Members</option>
+                    </select>
+                </div>
+
+                <!-- Team Name -->
+                <div class="form-group">
+                    <label for="team_name">Team Name:</label>
+                    <input class="form-control" type="text" id="team_name" name="teamName" placeholder="Enter Team Name"
+                        required />
+                </div>
+
+                <div class="form-group form-check">
+                    <input class="form-check-input" type="checkbox" id="ex" required />
+                    <label class="form-check-label" for="ex">By checking this box I agree to the <a href="#">data terms
+                            and policies</a>.
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg mt-4">
+                    Register Now
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase Registration Logic (REST API) -->
+    <script>
+        // --- CONFIGURATION ---
+        const DB_URL = "https://protothon26-reg-default-rtdb.firebaseio.com";
+
+        const form = document.querySelector("#registration-form");
+        const btn = form.querySelector('button[type="submit"]');
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            console.log("Form submitted. Processing...");
+
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Submitting...';
+            btn.disabled = true;
+
+            // Gather Form Data
+            const formData = {
+                teamLeaderName: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('contact').value,
+                year: document.getElementById('year').value,
+                department: document.getElementById('department').value,
+                college: document.getElementById('college').value,
+                city: document.getElementById('city').value,
+                state: document.getElementById('state').value,
+                teamSize: document.getElementById('team_size').value,
+                teamName: document.getElementById('team_name').value,
+                submittedAt: new Date().toISOString(),
+                status: "Pending" // Default status
+            };
+
+            try {
+                // Submit to Firebase registrations node
+                // POST creates a new child with a unique ID
+                const response = await fetch(`${DB_URL}/registrations.json`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const newTeamId = data.name; // Firebase POST returns { name: "-N..." }
+
+                    // Success
+                    console.log("Request sent", newTeamId);
+                    swal({
+                        title: "Registration Successful!",
+                        text: `Your Team ID is: ${newTeamId}\nPlease save this ID for login.`,
+                        type: "success",
+                        confirmButtonText: "Copy ID & Close"
+                    }).then(() => {
+                        // Optional: Copy to clipboard
+                        navigator.clipboard.writeText(newTeamId);
+
+                        form.reset();
+                        btn.innerHTML = 'Register Now';
+                        btn.disabled = false;
+                        // maybe redirect to login?
+                        // window.location.href = 'login.html'; 
+                    });
+                } else {
+                    throw new Error("Server responded with " + response.status);
+                }
+
+            } catch (error) {
+                console.error("Submission Error:", error);
+                swal("Error", "Submission failed. Please check your internet connection.", "error");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

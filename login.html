@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Proto-Thon '26</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body {
+            background-color: #030014;
+            color: white;
+            font-family: 'ui-sans-serif', 'system-ui', 'sans-serif';
+            /* Allow scrolling by default for mobile friendliness */
+            overflow-y: auto;
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
+        }
+
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Glassmorphism */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 40px rgba(88, 28, 135, 0.2);
+            position: relative;
+            z-index: 10;
+        }
+
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(30, 27, 75, 0.6) 0%, rgba(3, 0, 20, 0.8) 100%),
+                url('assets/bg-watermark.png') center/cover no-repeat fixed;
+            pointer-events: none;
+        }
+
+        /* NEW INPUT GROUP STYLE: Separated Flexbox */
+        .input-group-new {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 4px 12px;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .input-group-new:focus-within {
+            border-color: #a855f7;
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+        }
+
+        .input-icon {
+            color: #9ca3af;
+            margin-right: 12px;
+            flex-shrink: 0;
+            /* Static icon, no interaction needed */
+            pointer-events: none;
+        }
+
+        .input-new {
+            background: transparent;
+            border: none;
+            color: white;
+            flex-grow: 1;
+            padding: 12px 0;
+            outline: none;
+            font-size: 16px;
+            /* Prevents auto-zoom on iOS */
+        }
+
+        /* Role Switcher */
+        .role-switch {
+            display: flex;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 999px;
+            padding: 4px;
+            margin-bottom: 24px;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border: none;
+            background: transparent;
+            color: #9ca3af;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .role-btn.active {
+            background: #a855f7;
+            color: white;
+            box-shadow: 0 2px 10px rgba(168, 85, 247, 0.3);
+        }
+
+        .role-btn.inactive:hover {
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="flex items-center justify-center min-h-screen p-4" style="touch-action: pan-y;">
+
+    <div class="animated-bg"></div>
+
+    <div class="w-full max-w-md p-8 glass-card rounded-2xl">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold mb-2">Welcome Back</h2>
+            <p class="text-gray-400 text-sm">Login to access your dashboard</p>
+        </div>
+
+        <div class="role-switch">
+            <button type="button" id="btn-leader" class="role-btn active" onclick="switchRole('leader')">Team
+                Leader</button>
+            <button type="button" id="btn-admin" class="role-btn inactive" onclick="switchRole('admin')">Admin</button>
+        </div>
+
+        <!-- Team Leader Login Form -->
+        <form id="leader-form" class="space-y-4" onsubmit="handleLeaderLogin(event)">
+            <!-- Rebuilt Input Structure -->
+            <div class="input-group-new">
+                <i class="fas fa-envelope input-icon"></i>
+                <input type="email" id="leader-email" class="input-new" placeholder="Team Leader Email ID" required>
+            </div>
+
+            <div class="input-group-new">
+                <i class="fas fa-phone input-icon"></i>
+                <input type="tel" id="leader-phone" class="input-new" placeholder="Phone Number (Password)" required>
+            </div>
+
+            <button type="submit"
+                class="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg font-bold hover:scale-[1.01] active:scale-95 transition-all shadow-lg shadow-purple-900/50">
+                Login as Leader
+            </button>
+        </form>
+
+        <!-- Admin Login Form -->
+        <form id="admin-form" class="space-y-4 hidden" onsubmit="handleAdminLogin(event)">
+            <div class="input-group-new">
+                <i class="fas fa-user-shield input-icon"></i>
+                <input type="text" id="admin-user" class="input-new" placeholder="Admin Username" required>
+            </div>
+
+            <div class="input-group-new">
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" id="admin-pass" class="input-new" placeholder="Admin Password" required>
+            </div>
+
+            <button type="submit"
+                class="w-full py-3 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg font-bold hover:scale-[1.01] active:scale-95 transition-all shadow-lg shadow-red-900/50">
+                Login as Admin
+            </button>
+        </form>
+
+        <div class="text-center mt-6">
+            <a href="proto-thon26.html" class="text-gray-500 hover:text-white text-sm transition-colors">Back to
+                Home</a>
+        </div>
+    </div>
+
+    <script>
+        // REST API URL - Corrected Project Credentials
+        const DB_URL = "https://protothon26-reg-default-rtdb.firebaseio.com";
+
+        // --- STATE ---
+        let currentRole = 'leader';
+
+        window.switchRole = function (role) {
+            currentRole = role;
+            if (role === 'leader') {
+                document.getElementById('leader-form').classList.remove('hidden');
+                document.getElementById('admin-form').classList.add('hidden');
+                document.getElementById('btn-leader').classList.add('active');
+                document.getElementById('btn-leader').classList.remove('inactive');
+                document.getElementById('btn-admin').classList.remove('active');
+                document.getElementById('btn-admin').classList.add('inactive');
+            } else {
+                document.getElementById('leader-form').classList.add('hidden');
+                document.getElementById('admin-form').classList.remove('hidden');
+                document.getElementById('btn-leader').classList.remove('active');
+                document.getElementById('btn-leader').classList.add('inactive');
+                document.getElementById('btn-admin').classList.add('active');
+                document.getElementById('btn-admin').classList.remove('inactive');
+            }
+        }
+
+        // --- ADMIN LOGIN LOGIC ---
+        window.handleAdminLogin = function (e) {
+            e.preventDefault();
+            const user = document.getElementById('admin-user').value;
+            const pass = document.getElementById('admin-pass').value;
+
+            const validAdmins = [
+                "abinamani123@gmail.com",
+                "protothon26@princedrkvasudevan.com",
+                "manivel.n.bme26@princedrkvasudevan.com"
+            ];
+
+            if (validAdmins.includes(user) && pass === "Mani@4116") {
+                Swal.fire({
+                    icon: 'success', title: 'Admin Login Successful', showConfirmButton: false, timer: 1500
+                }).then(() => { window.location.href = 'admin-dashboard.html'; });
+            } else {
+                Swal.fire({ icon: 'error', title: 'Access Denied', text: 'Invalid Admin Credentials' });
+            }
+        }
+
+        // --- TEAM LEADER LOGIN LOGIC (REST API) ---
+        window.handleLeaderLogin = async function (e) {
+            e.preventDefault();
+            const email = document.getElementById('leader-email').value.trim();
+            const phone = document.getElementById('leader-phone').value.trim();
+
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = "Verifying...";
+            btn.disabled = true;
+
+            try {
+                // Fetch all registrations via REST
+                const response = await fetch(`${DB_URL}/registrations.json`);
+                if (!response.ok) throw new Error("Connection failed");
+
+                const data = await response.json();
+
+                if (data) {
+                    let foundUser = null;
+
+                    // Iterate through unique IDs
+                    for (const id in data) {
+                        const user = data[id];
+                        if (user && user.email && user.phone) {
+                            if (user.email.toLowerCase() === email.toLowerCase() && String(user.phone) === String(phone)) {
+                                foundUser = user;
+                                foundUser.id = id; // Attach Firebase ID
+                                break;
+                            }
+                        }
+                    }
+
+                    if (foundUser) {
+                        localStorage.setItem('currentUser', JSON.stringify(foundUser));
+                        Swal.fire({
+                            icon: 'success', title: 'Login Successful', text: `Welcome, ${foundUser.teamName}`, showConfirmButton: false, timer: 1500
+                        }).then(() => {
+                            window.location.href = 'user-dashboard.html';
+                        });
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Login Failed', text: 'Invalid Credentials.' });
+                    }
+                } else {
+                    Swal.fire({ icon: 'error', title: 'No Data', text: 'No registrations found.' });
+                }
+            } catch (error) {
+                console.error(error);
+                Swal.fire({ icon: 'warning', title: 'Connection Error', text: 'Could not connect to database.' });
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>

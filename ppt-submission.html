@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit PPT | Proto-Thon '26</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            background-color: #030014;
+            color: white;
+            font-family: 'ui-sans-serif', 'system-ui', 'sans-serif';
+            overflow-x: hidden;
+        }
+
+        /* Planets/Background Animation (Matching Registration Page) */
+        .planet {
+            position: fixed;
+            border-radius: 50%;
+            z-index: -5;
+            pointer-events: none;
+        }
+
+        .planet-1 {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            right: -50px;
+            background: radial-gradient(circle at 30% 30%, #4facfe, #00f2fe, #000);
+            box-shadow: 0 0 60px rgba(0, 242, 254, 0.3);
+            opacity: 0.6;
+            animation: float 10s ease-in-out infinite;
+        }
+
+        .planet-2 {
+            width: 200px;
+            height: 200px;
+            bottom: 10%;
+            left: -50px;
+            background: radial-gradient(circle at 70% 30%, #ff0844, #ffb199, #000);
+            box-shadow: 0 0 50px rgba(255, 8, 68, 0.3);
+            opacity: 0.5;
+            animation: float 15s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        /* Glass Container */
+        .glass-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(88, 28, 135, 0.2);
+        }
+
+        /* Iframe Loader */
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            height: 800px;
+            /* Taller for form */
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <!-- Background -->
+    <div class="planet planet-1"></div>
+    <div class="planet planet-2"></div>
+
+    <!-- Navbar -->
+    <nav class="p-6">
+        <div class="container mx-auto">
+            <a href="user-dashboard.html"
+                class="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <div class="container mx-auto px-4 pb-20 max-w-4xl">
+        <div class="glass-container p-8">
+            <div class="text-center mb-8">
+                <h1
+                    class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-4">
+                    Submit Your PPT
+                </h1>
+                <p class="text-gray-400">Please provide your presentation details below. Ensure your drive link is
+                    publicly accessible.</p>
+                <div class="mt-4 flex flex-col gap-3">
+                    <div
+                        class="inline-block px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-400 text-sm">
+                        <i class="fas fa-info-circle mr-2"></i> Some fields may be auto-filled for your convenience.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Native Review Form -->
+            <div class="bg-gray-800/50 p-8 rounded-xl border border-white/10">
+                <form id="proxy-form" onsubmit="redirectToGoogleForm(event)" class="space-y-6">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Team Name -->
+                        <div>
+                            <label class="block text-gray-400 text-xs uppercase font-bold mb-2">Team Name</label>
+                            <input type="text" id="field-team"
+                                class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:outline-none transition-colors"
+                                required>
+                        </div>
+                        <!-- Leader Name -->
+                        <div>
+                            <label class="block text-gray-400 text-xs uppercase font-bold mb-2">Leader Name</label>
+                            <input type="text" id="field-leader"
+                                class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:outline-none transition-colors"
+                                required>
+                        </div>
+                        <!-- Email -->
+                        <div>
+                            <label class="block text-gray-400 text-xs uppercase font-bold mb-2">Registered Email</label>
+                            <input type="email" id="field-email"
+                                class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:outline-none transition-colors"
+                                required>
+                        </div>
+                        <!-- Phone -->
+                        <div>
+                            <label class="block text-gray-400 text-xs uppercase font-bold mb-2">Phone</label>
+                            <input type="tel" id="field-phone"
+                                class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:outline-none transition-colors"
+                                required>
+                        </div>
+                        <!-- College -->
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-400 text-xs uppercase font-bold mb-2">College /
+                                Institution</label>
+                            <input type="text" id="field-college"
+                                class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:outline-none transition-colors"
+                                required>
+                        </div>
+
+                        <!-- Domain -->
+                        <div class="md:col-span-2">
+                            <label class="block text-gray-400 text-xs uppercase font-bold mb-2">Domain</label>
+                            <select id="field-domain"
+                                class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:outline-none transition-colors appearance-none"
+                                required>
+                                <option value="" disabled selected>Select your domain</option>
+                                <option value="Healthcare & Agri">Healthcare & Agri</option>
+                                <option value="Cyber Security">Cyber Security</option>
+                                <option value="Student Innovation">Student Innovation</option>
+                                <option value="EduTech">EduTech</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-white/10 text-center">
+                        <button type="submit"
+                            class="group relative inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full font-bold text-white text-lg shadow-[0_0_20px_rgba(37,99,235,0.5)] hover:shadow-[0_0_30px_rgba(37,99,235,0.7)] hover:scale-105 transition-all">
+                            <span>Proceed to File Upload</span>
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <div
+                                class="absolute inset-0 rounded-full bg-white/20 blur opacity-0 group-hover:opacity-100 transition-opacity">
+                            </div>
+                        </button>
+                        <p class="mt-4 text-xs text-gray-500">
+                            This will open the secure Google Form where you can drop your PPT file.
+                        </p>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // MAPPING: Google Entry IDs
+        const FORM_IDS = {
+            team: 'entry.787829410',
+            leader: 'entry.1387306896',
+            email: 'entry.459947168',
+            phone: 'entry.1977563178',
+            college: 'entry.250627228',
+            domain: 'entry.2115579411'
+        };
+
+        // --- POPULATE FROM URL ---
+        window.onload = function () {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // Map URL params to Inputs
+            document.getElementById('field-team').value = urlParams.get(FORM_IDS.team) || '';
+            document.getElementById('field-leader').value = urlParams.get(FORM_IDS.leader) || '';
+            document.getElementById('field-email').value = urlParams.get(FORM_IDS.email) || '';
+            document.getElementById('field-phone').value = urlParams.get(FORM_IDS.phone) || '';
+            document.getElementById('field-college').value = urlParams.get(FORM_IDS.college) || '';
+
+            // Handle Domain specially (Dropdown selection)
+            const domainVal = urlParams.get(FORM_IDS.domain);
+            if (domainVal) {
+                const select = document.getElementById('field-domain');
+                // Try direct assignment
+                select.value = domainVal;
+
+                // If direct assignment didn't work (value not found), try case-insensitive
+                if (select.value !== domainVal) {
+                    for (let i = 0; i < select.options.length; i++) {
+                        if (select.options[i].value.toLowerCase() === domainVal.toLowerCase()) {
+                            select.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // --- REDIRECT LOGIC ---
+        function redirectToGoogleForm(e) {
+            e.preventDefault();
+
+            // Base URL (Must be viewform, not embedded)
+            const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSejJJ7OHncMkwsd8mviSs3mhG07sCLH9YGLseiGonOF2QtMag/viewform?usp=pp_url";
+
+            // Get valid values from our inputs
+            const params = new URLSearchParams();
+            params.append(FORM_IDS.team, document.getElementById('field-team').value);
+            params.append(FORM_IDS.leader, document.getElementById('field-leader').value);
+            params.append(FORM_IDS.email, document.getElementById('field-email').value);
+            params.append(FORM_IDS.phone, document.getElementById('field-phone').value);
+            params.append(FORM_IDS.college, document.getElementById('field-college').value);
+            params.append(FORM_IDS.domain, document.getElementById('field-domain').value);
+
+            // Redirect
+            window.location.href = `${baseUrl}&${params.toString()}`;
+        }
+    </script>
+</body>
+
+</html>

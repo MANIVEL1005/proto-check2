@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Dashboard | Proto-Thon '26</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for IE, Edge and Firefox */
+        html {
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-white min-h-screen">
+
+    <nav class="bg-black/80 backdrop-blur-md border-b border-white/10 p-4 fixed w-full top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                User Dashboard</h1>
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="text-gray-400 hover:text-white flex items-center gap-2">
+                    <i class="fas fa-home"></i> <span class="hidden md:inline">Home</span>
+                </a>
+                <button onclick="resetDashboard()"
+                    class="text-xs text-red-400 hover:text-red-300 mr-4 border border-red-500/30 px-2 py-1 rounded">
+                    <i class="fas fa-sync-alt"></i> Fix Data
+                </button>
+                <button onclick="logout()" class="text-gray-400 hover:text-white">Logout</button>
+            </div>
+        </div>
+        <!-- STATUS BAR -->
+        <div class="container mx-auto px-4 pb-2 -mt-2 flex justify-end">
+            <span id="last-sync-time" class="text-xs text-green-400 font-mono animate-pulse">Syncing...</span>
+        </div>
+    </nav>
+
+    <!-- WATERMARK BACKGROUND -->
+    <div
+        style="position: fixed; inset: 0; z-index: -1; background: url('assets/bg-watermark.png') center/cover no-repeat; opacity: 0.5; pointer-events: none;">
+    </div>
+    <div
+        style="position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at center, rgba(17, 24, 39, 0.4) 0%, rgba(17, 24, 39, 0.9) 100%); pointer-events: none;">
+    </div>
+
+    <!-- Spacer for fixed nav -->
+    <div class="h-20"></div>
+
+    <script>
+        function resetDashboard() {
+            if (confirm("This will logout and reload. Continue?")) {
+                localStorage.removeItem('currentUser');
+                location.reload();
+            }
+        }
+    </script>
+
+    <!-- JsBarcode -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+
+    <div class="container mx-auto p-8 max-w-6xl">
+        <!-- Welcome Section -->
+        <div class="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h2 class="text-3xl font-bold">Welcome, <span id="team-name-header"
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Team</span>!
+                </h2>
+                <p class="text-gray-400 text-sm mt-1">Manage your team and submissions here.</p>
+            </div>
+
+        </div>
+
+        <!-- NEW: DIGITAL PASS & LOGISTICS -->
+        <div class="mb-8 flex justify-center">
+            <div id="pass-ticket"
+                class="w-full max-w-[850px] flex flex-col md:flex-row bg-white font-sans overflow-hidden shadow-2xl rounded-xl mx-auto">
+                <!-- Main Ticket (Left 70%) -->
+                <div class="md:w-[70%] border-r-2 border-dashed border-gray-300 relative flex flex-col">
+                    <!-- Header -->
+                    <div
+                        class="h-20 bg-[#1a1464] text-white flex items-center px-4 md:px-8 justify-between relative overflow-hidden">
+                        <!-- BG Pattern -->
+                        <div
+                            class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+                        </div>
+
+                        <div class="z-10 flex items-center gap-3">
+                            <img src="CONTENTS/08.png" alt="Logo" class="h-16 w-16 object-contain">
+                            <div>
+                                <h1 class="text-xl md:text-3xl font-bold tracking-wider font-serif">PRINCE</h1>
+                                <p class="text-[8px] md:text-[10px] uppercase tracking-wider text-blue-200">Dr K
+                                    Vasudevan
+                                    College of Engg & Tech</p>
+                            </div>
+                        </div>
+                        <div class="text-right z-10">
+                            <h2 class="text-lg md:text-2xl font-bold tracking-tight">PROTO-THON'26</h2>
+                            <p class="text-xs font-bold bg-white/20 px-2 py-0.5 rounded inline-block mt-1">FOOD TOKEN
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div
+                        class="flex-1 p-4 md:p-8 grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 relative z-10 text-gray-900">
+                        <!-- Col 1 -->
+                        <div class="col-span-1 md:col-span-2 space-y-4 md:space-y-6">
+                            <div>
+                                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Current Meal
+                                </p>
+                                <p class="text-lg md:text-xl font-bold text-blue-900" id="bp-meal-label">--</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Check-in Window
+                                </p>
+                                <p class="text-lg md:text-xl font-bold" id="bp-time-label">--:--</p>
+                            </div>
+                        </div>
+
+                        <!-- Col 2 -->
+                        <div class="col-span-1 md:col-span-3 space-y-4 md:space-y-6">
+                            <div class="flex items-end justify-between">
+                                <div class="flex-1">
+                                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Participant
+                                        Name</p>
+                                    <p class="text-lg md:text-2xl font-bold truncate max-w-[200px] md:max-w-none"
+                                        id="ticket-participant-name">--</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">COUNT</p>
+                                    <p class="text-2xl md:text-3xl font-extrabold text-[#1a1464]"
+                                        id="ticket-count-main">--</p>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex flex-wrap gap-4 md:gap-12">
+                                    <div>
+                                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Date
+                                        </p>
+                                        <p class="text-sm md:text-lg font-bold" id="ticket-date">--/--/----</p>
+                                    </div>
+                                    <div class="hidden md:block">
+                                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+                                            Boarding
+                                            Time</p>
+                                        <p class="text-lg font-bold">08:00 AM</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Barcode Full Width Row (Moved Left & Increased Size) -->
+                        <div class="col-span-full mt-4 flex justify-start">
+                            <svg id="ticket-barcode-main" class="h-20 w-full max-w-[500px]"></svg>
+                        </div>
+                    </div>
+
+                    <!-- Watermark -->
+                    <div
+                        class="absolute inset-0 top-40 flex items-center justify-center opacity-5 pointer-events-none z-0">
+                        <i class="fas fa-shield-alt text-9xl text-blue-900"></i>
+                    </div>
+                </div>
+
+                <!-- Stub (Right 30%) -->
+                <div
+                    class="md:w-[30%] flex flex-row md:flex-col relative bg-gray-50 border-t-2 md:border-t-0 md:border-l-2 border-dashed border-gray-300">
+                    <!-- Header Stub -->
+                    <div
+                        class="w-16 md:w-full md:h-20 bg-[#2a2474] text-white flex flex-col justify-center items-center md:items-start px-2 md:px-6">
+                        <h2 class="text-xs md:text-lg font-bold transform -rotate-90 md:rotate-0 whitespace-nowrap">
+                            PROTO-THON'26</h2>
+                    </div>
+
+                    <!-- Body Stub -->
+                    <div class="p-4 md:p-6 flex-1 flex flex-col justify-between w-full">
+                        <div class="grid grid-cols-2 gap-4 text-gray-900">
+                            <div>
+                                <p class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Entry Time</p>
+                                <p class="text-sm font-bold" id="ticket-entry-time">--:--</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Status</p>
+                                <p class="text-xs font-bold text-gray-400" id="ticket-status">PENDING</p>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-end border-b border-gray-200 pb-4">
+                            <div class="text-gray-900">
+                                <p class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Seat</p>
+                                <p class="text-xl md:text-3xl font-extrabold text-[#1a1464]" id="ticket-seat">--</p>
+                            </div>
+                            <div class="text-right">
+                                <i class="fas fa-utensils text-gray-300 text-2xl"></i>
+                            </div>
+                        </div>
+
+                        <!-- Barcode Strip -->
+                        <div class="mt-2 flex justify-center overflow-hidden">
+                            <svg id="ticket-barcode" class="w-full h-24"></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOGISTICS & TOKENS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <!-- 1. SEAT ALLOCATION (Redundant but good for quick view) -->
+            <!-- Removed redundant Seat Card as it is on ticket now -->
+
+            <!-- html2canvas -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+            <!-- HIDDEN TEMPLATE FOR GENERATION -->
+            <div style="position: absolute; left: -9999px; top: -9999px;">
+                <div id="user-pass-template" class="w-[850px] h-[280px] flex bg-white font-sans overflow-hidden">
+                    <!-- Main Ticket (Left 70%) -->
+                    <div class="w-[70%] border-r-2 border-dashed border-gray-300 relative flex flex-col">
+                        <!-- Header -->
+                        <div
+                            class="h-20 bg-[#1a1464] text-white flex items-center px-8 justify-between relative overflow-hidden">
+                            <!-- BG Pattern -->
+                            <div class="absolute inset-0 opacity-10 bg-white/20"></div>
+
+                            <div class="z-10 flex items-center gap-4">
+                                <img src="CONTENTS/08.png" alt="Logo" class="h-20 w-20 object-contain">
+                                <div>
+                                    <h1 class="text-3xl font-bold tracking-wider font-serif">PRINCE</h1>
+                                    <p class="text-[10px] uppercase tracking-wider text-blue-200">Dr K Vasudevan College
+                                        of
+                                        Engineering and Technology</p>
+                                </div>
+                            </div>
+                            <div class="text-right z-10">
+                                <h2 class="text-2xl font-bold tracking-tight">PROTO-THON'26</h2>
+                                <p class="text-xs font-bold bg-white/20 px-2 py-0.5 rounded inline-block mt-1">FOOD
+                                    TOKEN</p>
+                            </div>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="flex-1 p-8 grid grid-cols-5 gap-6 relative z-10">
+                            <!-- Col 1 -->
+                            <div class="col-span-2 space-y-6">
+                                <div>
+                                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Token No
+                                    </p>
+                                    <p class="text-xl font-bold text-gray-900" id="up-token-no">--</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Meal</p>
+                                    <p class="text-xl font-bold text-gray-900 uppercase" id="up-meal-type">--</p>
+                                </div>
+                            </div>
+
+                            <!-- Col 2 -->
+                            <div class="col-span-3 space-y-6">
+                                <div class="flex items-end justify-between">
+                                    <div class="flex-1">
+                                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+                                            Participant Name</p>
+                                        <p class="text-2xl font-bold text-gray-900 truncate max-w-[280px]"
+                                            id="up-participant-name">--</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">COUNT
+                                        </p>
+                                        <p class="text-3xl font-extrabold text-[#1a1464]" id="up-count-main">04</p>
+                                    </div>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="flex gap-12">
+                                        <div>
+                                            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+                                                Date
+                                            </p>
+                                            <p class="text-lg font-bold text-gray-900" id="up-date">21/02/2026</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+                                                Token Issue Time</p>
+                                            <p class="text-lg font-bold text-gray-900" id="up-issue-time">--:--</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Barcode Full Width Row (Moved Left & Increased Size) -->
+                            <div class="col-span-full mt-4 flex justify-start">
+                                <svg id="up-barcode-main" class="h-24 w-[450px] ml-[-20px]"></svg>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                    <!-- Stub (Right 30%) -->
+                    <div class="w-[30%] flex flex-col relative bg-gray-50">
+                        <!-- Header Stub -->
+                        <div
+                            class="h-20 bg-[#2a2474] text-white flex flex-col justify-center px-6 border-l border-white/10">
+                            <h2 class="text-lg font-bold">PROTO-THON'26</h2>
+                            <p class="text-[9px] opacity-80 uppercase tracking-wider">Food Token</p>
+                        </div>
+
+                        <!-- Body Stub -->
+                        <div class="p-6 flex-1 flex flex-col justify-between">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Issue Time
+                                    </p>
+                                    <p class="text-sm font-bold text-gray-800" id="up-issue-time-stub">--:--</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Valid</p>
+                                    <p class="text-sm font-bold text-gray-800" id="up-valid-stub">ONE TIME</p>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-end border-b border-gray-200 pb-4">
+                                <div>
+                                    <p class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Count</p>
+                                    <p class="text-3xl font-extrabold text-[#1a1464]" id="up-count-stub">04</p>
+                                </div>
+                                <div class="text-right">
+                                    <i class="fas fa-utensils text-gray-300 text-2xl"></i>
+                                </div>
+                            </div>
+
+                            <!-- Barcode Strip -->
+                            <div class="mt-2 flex justify-center">
+                                <svg id="up-barcode" class="w-full h-24"></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. TOKEN WALLET -->
+            <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl md:col-span-2">
+                <div class="text-gray-400 text-xs uppercase font-bold mb-4 flex items-center gap-2">
+                    <i class="fas fa-utensils"></i> Meal Tokens Status
+                </div>
+                <!-- Dynamic Live Token Container -->
+                <div id="live-token-container" class="w-full transition-all duration-500">
+                    <!-- Javascript will inject the card here -->
+                    <div class="h-48 w-full bg-gray-800 animate-pulse rounded-2xl"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Marks / Score Card -->
+        <div id="score-card"
+            class="hidden mb-8 bg-gradient-to-r from-green-900/40 to-emerald-900/40 border border-green-500/30 p-6 rounded-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-green-300 font-bold mb-1 flex items-center gap-2">
+                        <i class="fas fa-trophy"></i> Round 1 Score
+                    </h3>
+                    <p class="text-gray-400 text-sm">Allocated by Judges/Admin</p>
+                </div>
+                <div class="text-4xl font-bold text-white drop-shadow-[0_0_10px_rgba(34,197,94,0.5)]">
+                    <span id="score-value">0</span><span class="text-xl text-gray-500">/100</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Message Notification -->
+        <!-- Admin Message Notification MOVED to Sidebar -->
+
+        <!-- 3. ATTENDANCE STATUS (New Style) -->
+        <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl mt-8">
+            <div class="text-gray-400 text-xs uppercase font-bold mb-4 flex items-center gap-2">
+                <i class="fas fa-map-marker-alt"></i> Attendance Status
+            </div>
+            <div id="attendance-status-container" class="w-full transition-all duration-500">
+                <!-- Javascript will inject the card here -->
+                <div class="h-48 w-full bg-gray-800 animate-pulse rounded-2xl"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. EVENT LOCATION MAP -->
+    <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl mt-8 mb-12">
+        <div class="text-gray-400 text-xs uppercase font-bold mb-4 flex items-center gap-2">
+            <i class="fas fa-map-marked-alt"></i> Event Location
+        </div>
+        <div class="w-full h-[400px] rounded-xl overflow-hidden border border-white/10 relative group">
+            <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3889.030567086086!2d80.17367807584105!3d12.905753087403666!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a525ea06bd41c89%3A0xe7bc8601639d67e7!2sPrince%20Dr.K.Vasudevan%20College%20of%20Engineering%20and%20Technology!5e0!3m2!1sen!2sin!4v1709665780514!5m2!1sen!2sin"
+                width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"
+                class="grayscale hover:grayscale-0 transition-all duration-500"
+                referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+            <div
+                class="absolute bottom-4 left-4 bg-black/80 backdrop-blur-md p-4 rounded-lg border border-white/10 max-w-xs pointer-events-none">
+                <h3 class="text-white font-bold text-sm mb-1">PDKVCET</h3>
+                <p class="text-gray-400 text-xs">
+                    Medavakkam - Mambakkam Road, Ponmar, Chennai – 600 127.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. HOW TO REACH US (Animated) -->
+    <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl mt-8 mb-12 overflow-hidden relative group">
+        <!-- Background Animation -->
+        <div class="absolute inset-0 opacity-10 pointer-events-none">
+            <div class="absolute bottom-0 left-0 w-full h-1 bg-gray-500"></div>
+            <div class="absolute bottom-0 left-0 w-20 h-10 bg-gray-600 animate-[drive_10s_linear_infinite]"
+                style="bottom: 4px;">
+                <i class="fas fa-bus text-4xl text-white transform -scale-x-100"></i>
+            </div>
+        </div>
+
+        <div class="text-gray-400 text-xs uppercase font-bold mb-6 flex items-center gap-2 relative z-10">
+            <i class="fas fa-route"></i> How to Reach Us
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+            <!-- Tambaram -->
+            <div class="bg-gray-900/50 p-6 rounded-xl border border-white/5 hover:border-primary/30 transition-colors">
+                <div class="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mb-4 text-blue-400">
+                    <i class="fas fa-train text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2">From Tambaram</h3>
+                <p class="text-sm text-gray-400 mb-2">Exit East Side (Opp. MCC)</p>
+                <ul class="text-xs text-gray-500 space-y-2 list-disc pl-4">
+                    <li><strong class="text-white">Direct:</strong> Bus <span class="text-primary font-bold">31P</span>
+                        (Tambaram to Ponmar).</li>
+                    <li><strong class="text-white">Backup:</strong> Take 51V, 51A, 51AX to Medavakkam, then switch to
+                        <span class="text-primary font-bold">M51V</span>.
+                    </li>
+                    <li><strong class="text-white">Via Mambakkam:</strong> 51J or M51CT.</li>
+                </ul>
+            </div>
+
+            <!-- Central / Egmore -->
+            <div class="bg-gray-900/50 p-6 rounded-xl border border-white/5 hover:border-primary/30 transition-colors">
+                <div
+                    class="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center mb-4 text-purple-400">
+                    <i class="fas fa-subway text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2">From Central / Egmore</h3>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-xs font-bold text-white uppercase opacity-70">From Egmore</p>
+                        <p class="text-xs text-gray-400">South Line Train to Tambaram -> Follow Tambaram Route.</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-white uppercase opacity-70">From Central</p>
+                        <p class="text-xs text-gray-400">Walk to Park Station -> Train to Tambaram.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kilambakkam -->
+            <div class="bg-gray-900/50 p-6 rounded-xl border border-white/5 hover:border-primary/30 transition-colors">
+                <div
+                    class="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mb-4 text-green-400">
+                    <i class="fas fa-bus text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2">From Kilambakkam (KCBT)</h3>
+                <p class="text-sm text-gray-400 mb-2">Coming from South?</p>
+                <ul class="text-xs text-gray-500 space-y-2 list-disc pl-4">
+                    <li>Take Bus <strong class="text-white">515</strong> (to Mamallapuram).</li>
+                    <li>Get down at <strong class="text-white">Mambakkam</strong> Bus Stop.</li>
+                    <li>Switch to <strong class="text-white">M51V</strong> or Auto to Ponmar.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Animation Inline Styles -->
+        <style>
+            @keyframes drive {
+                0% {
+                    left: -10%;
+                }
+
+                100% {
+                    left: 110%;
+                }
+            }
+        </style>
+    </div>
+
+    <!-- Quick Tips -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div class="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl flex gap-4 items-start">
+            <i class="fas fa-lightbulb text-yellow-500 mt-1"></i>
+            <div>
+                <h4 class="text-yellow-500 font-bold text-sm">Pro Tip: Timing</h4>
+                <p class="text-xs text-gray-400 mt-1">reach Tambaram 1 hour before reporting time. Traffic at Medavakkam
+                    can be unpredictable.</p>
+            </div>
+        </div>
+        <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl flex gap-4 items-start">
+            <i class="fas fa-map-signs text-blue-500 mt-1"></i>
+            <div>
+                <h4 class="text-blue-500 font-bold text-sm">Landmark</h4>
+                <p class="text-xs text-gray-400 mt-1">Ask for "Prince College" or "PDKVCET" if taking an auto from
+                    Medavakkam.</p>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- DEBUG STATUS BAR -->
+    <div id="debug-bar"
+        class="fixed bottom-0 left-0 w-full bg-black/90 text-xs font-mono text-green-400 p-2 border-t border-green-500/30 z-50 flex justify-between items-center opacity-75 hover:opacity-100 transition-opacity">
+        <div>
+            <span class="text-gray-500">STATUS:</span> <span id="debug-status">Initializing...</span> |
+            <span class="text-gray-500">TEAM:</span> <span id="debug-team">--</span> |
+            <span class="text-gray-500">PATH:</span> <span id="debug-path">--</span>
+        </div>
+        <div id="debug-last-msg" class="text-gray-400 truncate max-w-xs">Waiting for updates...</div>
+    </div>
+
+    <script>
+        // Check session - Redundant block removed to fix lint error
+
+
+        // DEBUG HELPER
+        function updateDebug(status, team, path, msg) {
+            if (status) document.getElementById('debug-status').innerText = status;
+            if (team) document.getElementById('debug-team').innerText = team;
+            if (path) document.getElementById('debug-path').innerText = path;
+            if (msg) document.getElementById('debug-last-msg').innerText = msg;
+        }
+
+        // --- DATA STATE ---
+        let localData = JSON.parse(localStorage.getItem('currentUser'));
+
+        // AUTH GUARD
+        if (!localData || Object.keys(localData).length === 0) {
+            window.location.href = 'login.html';
+        }
+
+        // --- FIREBASE LIVE REFRESH LOGIC ---
+        const DB_URL = "https://protothon26-reg-default-rtdb.firebaseio.com";
+        let userData = localData; // Initialize with local data first
+
+        async function fetchLatestData() {
+            const syncLabel = document.getElementById('last-sync-time');
+            if (localData.id) {
+                try {
+                    const response = await fetch(`${DB_URL}/registrations/${localData.id}.json`);
+                    if (response.ok) {
+                        const freshData = await response.json();
+                        if (freshData) {
+                            // Merge fresh data with ID
+                            userData = { ...freshData, id: localData.id };
+                            // Update local storage
+                            localStorage.setItem('currentUser', JSON.stringify(userData));
+
+                            // Update UI Status
+                            if (syncLabel) {
+                                syncLabel.innerText = "Live Synced";
+                                syncLabel.classList.remove('text-green-400', 'animate-pulse');
+                                syncLabel.classList.add('text-green-500');
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("Sync failed", e);
+                    if (syncLabel) syncLabel.innerText = "Offline Mode";
+                }
+            }
+            // Always render, whether sync worked or used cache
+            renderDashboard();
+        }
+
+        // Initial Fetch & Render
+        fetchLatestData();
+
+        // POLL FOR LIVE UPDATES (Every 3 seconds)
+        setInterval(fetchLatestData, 3000);
+
+        function renderDashboard() {
+            // --- HELPER: Normalize for fuzzy matching ---
+            const normalize = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+
+            // --- HELPER: Find key case-insensitively ---
+            const findKey = (term) => Object.keys(userData).find(k => normalize(k).includes(normalize(term)));
+
+            // --- POPULATE DATA ---
+            const teamNameKey = findKey('team name') || 'Team Name';
+            const teamName = userData[teamNameKey] || 'Participant';
+            document.getElementById('team-name-header').innerText = teamName;
+
+            // TICKET DATA
+            // Prefer Leader Name -> Name -> Team Name
+            const participantName = userData['Leader Name'] || userData['name'] || userData['teamLeaderName'] || teamName || "Participant";
+            const ticketNameEl = document.getElementById('ticket-participant-name');
+            if (ticketNameEl) ticketNameEl.innerText = participantName;
+
+
+            const count = userData.memberCount || userData['Member Count'] || "00";
+            document.getElementById('ticket-count-main').innerText = String(count).padStart(2, '0');
+
+            // --- BARCODE GENERATION ---
+            if (userData.id) {
+                try {
+                    // Stub Barcode
+                    JsBarcode("#ticket-barcode", userData.id, {
+                        format: "CODE128",
+                        lineColor: "#000",
+                        width: 3,
+                        height: 80,
+                        displayValue: false
+                    });
+
+                    // Main Barcode (New Position)
+                    const mainBarcodeEl = document.getElementById('ticket-barcode-main');
+                    if (mainBarcodeEl) {
+                        JsBarcode("#ticket-barcode-main", userData.id, {
+                            format: "CODE128",
+                            lineColor: "#000",
+                            width: 3, // Increased from 2
+                            height: 60, // Increased from 50
+                            displayValue: false
+                        });
+                    }
+
+                } catch (e) {
+                    console.error("Barcode Error", e);
+                }
+            }
+
+            // --- SEAT DISPLAY ---
+            const seatKey = findKey('seat') || findKey('seatNumber') || 'seatNumber';
+            const seat = userData[seatKey];
+            if (seat) {
+                document.getElementById('ticket-seat').innerText = seat;
+            } else {
+                document.getElementById('ticket-seat').innerText = "--";
+            }
+
+            // --- ATTENDANCE STATUS ON TICKET ---
+            const attStatus = userData.attendance ? userData.attendance.status : 'Absent';
+            const attTime = userData.attendance ? userData.attendance.lastUpdated : null;
+
+            const ticketStatus = document.getElementById('ticket-status');
+            const ticketTime = document.getElementById('ticket-entry-time');
+
+            if (ticketStatus) {
+                if (attStatus === 'Present') {
+                    ticketStatus.innerText = "CONFIRMED";
+                    ticketStatus.className = "text-xs font-bold text-green-500 animate-pulse";
+
+                    // Update Time
+                    if (ticketTime && attTime) {
+                        const date = new Date(attTime);
+                        ticketTime.innerText = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    }
+                } else {
+                    ticketStatus.innerText = "PENDING";
+                    ticketStatus.className = "text-xs font-bold text-red-400";
+                    if (ticketTime) ticketTime.innerText = "--:--";
+                }
+            }
+
+            // Call sub-updates
+            if (typeof updateBoardingPass === 'function') updateBoardingPass();
+            if (typeof updateTokenWallet === 'function') updateTokenWallet();
+            if (typeof updateAttendanceUI === 'function') updateAttendanceUI();
+
+            // Update Score Card
+            const scoreKey = findKey('score') || "Round 1 Score";
+            const scoreVal = userData[scoreKey];
+            if (scoreVal && String(scoreVal).trim().length > 0) {
+                const sc = document.getElementById('score-card');
+                if (sc) {
+                    sc.classList.remove('hidden');
+                    const scoreValEl = document.getElementById('score-value');
+                    if (scoreValEl) scoreValEl.innerText = scoreVal;
+                }
+            }
+
+            updateDebug("Ready", teamName, "Connected");
+        }
+
+
+        <!-- --- TOKEN LOGIC & UI --- -->
+
+        // --- 1. TOKEN MANAGER LOGIC ---
+        const TokenManager = {
+            mealWindows: [
+                { name: "Breakfast", start: "08:00", end: "09:30", type: "breakfast" },
+                { name: "Snacks 1", start: "11:00", end: "11:45", type: "snacks1" },
+                { name: "Lunch", start: "12:30", end: "14:00", type: "lunch" },
+                { name: "Snacks 2", start: "16:00", end: "16:45", type: "snacks2" },
+                { name: "Dinner", start: "21:00", end: "21:45", type: "dinner" }
+            ],
+
+            // Helper: Check if timestamp is today
+            isToday: (timestamp) => {
+                if (!timestamp) return false;
+                const date = new Date(timestamp);
+                const now = new Date();
+                return date.getDate() === now.getDate() &&
+                    date.getMonth() === now.getMonth() &&
+                    date.getFullYear() === now.getFullYear();
+            },
+
+            // Helper: Get today's minutes
+            getNowMinutes: () => {
+                const now = new Date();
+                return now.getHours() * 60 + now.getMinutes();
+            },
+
+            // Helper: Parse "HH:MM" to minutes
+            parseTime: (timeStr) => {
+                const [h, m] = timeStr.split(':').map(Number);
+                return h * 60 + m;
+            },
+
+            // Get Current Active Session
+            getCurrentSession: () => {
+                const now = TokenManager.getNowMinutes();
+                return TokenManager.mealWindows.find(w => {
+                    const start = TokenManager.parseTime(w.start);
+                    const end = TokenManager.parseTime(w.end);
+                    return now >= start && now <= end;
+                });
+            },
+
+            // Get Next Session
+            getNextSession: () => {
+                const now = TokenManager.getNowMinutes();
+                return TokenManager.mealWindows.find(w => {
+                    const start = TokenManager.parseTime(w.start);
+                    return now < start;
+                });
+            },
+
+            // Get Token State
+            getTokenState: (mealType, tokenData) => {
+                const window = TokenManager.mealWindows.find(w => w.type === mealType);
+                if (!window) return "INVALID";
+
+                // 1. Redeemed? (Prioritize if strictly redeemed, but check if we want to show expired even if not redeemed)
+                // logic: ACTIVE if in window & not redeemed. REDEEMED if redeemed. EXPIRED if time > end & not redeemed.
+                // DAILY RESET: Only count as redeemed if timestamp is TODAY.
+
+                if (tokenData && tokenData.redeemed) {
+                    if (TokenManager.isToday(tokenData.timestamp)) {
+                        return "REDEEMED";
+                    }
+                    // If redeemed on previous day, ignore and treat as fresh for today (fall through)
+                }
+
+                // 2. Time Check
+                const now = TokenManager.getNowMinutes();
+                const start = TokenManager.parseTime(window.start);
+                const end = TokenManager.parseTime(window.end);
+
+                if (now > end) return "EXPIRED";
+                if (now < start) return "UPCOMING";
+                return "ACTIVE";
+            },
+
+            // Generate QR Content
+            generateQR: (userId, sessionType) => {
+                const timestamp = Date.now();
+                // Encodes: userId|timestamp|mealType
+                return `${userId}|${timestamp}|${sessionType}`;
+            }
+        };
+
+        // --- 2. UPDATE BOARDING PASS (MAIN TICKET) ---
+        const updateBoardingPass = () => {
+            const currentSession = TokenManager.getCurrentSession();
+            const nextSession = TokenManager.getNextSession();
+
+            // ATTENDANCE WINDOW: 06:00 to 10:00
+            const nowMinutes = TokenManager.getNowMinutes();
+            const attStart = 6 * 60; // 06:00
+            const attEnd = 10 * 60;  // 10:00
+            const isAttendanceWindow = nowMinutes >= attStart && nowMinutes <= attEnd;
+
+            // Elements
+            const ticketMealLabel = document.getElementById('bp-meal-label');
+            const ticketTimeLabel = document.getElementById('bp-time-label');
+            const ticketStatus = document.getElementById('ticket-status');
+            const ticketBarcode = document.getElementById('ticket-barcode');
+
+            let displayStatus = "CLOSED";
+            let qrContent = null;
+            let mealName = "--";
+            let mealTime = "--:--";
+            let statusColorClass = "text-gray-400";
+            let statusPulse = false;
+
+            // PRIORITY: 1. Active Meal -> 2. Active Attendance -> 3. Upcoming Meal -> 4. Closed
+
+            // 1. Check Active Meal
+            if (currentSession) {
+                const tokenData = (userData.tokens || {})[currentSession.type];
+                const state = TokenManager.getTokenState(currentSession.type, tokenData);
+
+                mealName = currentSession.name.toUpperCase();
+                mealTime = `${currentSession.start} - ${currentSession.end}`;
+
+                if (state === "ACTIVE") {
+                    displayStatus = "READY TO SCAN";
+                    statusColorClass = "text-green-500";
+                    statusPulse = true;
+                    qrContent = TokenManager.generateQR(localData.id, currentSession.type);
+                } else if (state === "REDEEMED") {
+                    displayStatus = "REDEEMED";
+                    statusColorClass = "text-blue-500";
+                    qrContent = null;
+                } else if (state === "EXPIRED") {
+                    displayStatus = "EXPIRED";
+                    statusColorClass = "text-red-500";
+                    qrContent = null;
+                }
+            }
+            // --- DYNAMIC DATE ---
+            const today = new Date();
+            const dateStr = today.toLocaleDateString('en-GB'); // DD/MM/YYYY
+            const ticketDate = document.getElementById('ticket-date');
+            if (ticketDate) ticketDate.innerText = dateStr;
+
+            // 2. Check Attendance (Only if no active meal, or maybe concurrent? Requirement implies specific 6-10 for attendance)
+            // If we are in attendance window AND NO Active Meal is "READY TO SCAN" (to avoid confusion), or just separate?
+            // User said: "attendance barcode also shows on 6 am to 10 am that only for attendance not for food"
+            // This implies if Breakfast is active (8-9:30), we should probably show Breakfast Ticket.
+            // But if it's 6-8 (Before Breakfast) or 9:30-10 (After Breakfast), show Attendance?
+            // OR should we toggle? Let's stick to Meal Priority. If Meal is Active, show Meal. 
+            // If Meal is NOT Active (e.g. 7am), but Attendance IS, show Attendance.
+            else if (isAttendanceWindow) {
+                mealName = "ATTENDANCE";
+                mealTime = "06:00 - 10:00";
+
+                // Check if already present?
+                const attnStatus = userData.attendance ? userData.attendance.status : 'Absent';
+                const lastUpdated = userData.attendance ? userData.attendance.lastUpdated : null;
+                const isAttnToday = TokenManager.isToday(lastUpdated);
+
+                if (attnStatus === 'Present' && isAttnToday) {
+                    displayStatus = "MARKED PRESENT";
+                    statusColorClass = "text-green-500";
+                    qrContent = null; // No need to scan again
+                } else {
+                    displayStatus = "SCAN FOR ATTENDANCE";
+                    statusColorClass = "text-purple-500";
+                    statusPulse = true;
+                    qrContent = localData.id; // Just ID for attendance
+                }
+            }
+            // 3. Upcoming Meal
+            else if (nextSession) {
+                mealName = nextSession.name.toUpperCase();
+                mealTime = `${nextSession.start} - ${nextSession.end}`;
+                displayStatus = `OPENS ${nextSession.start}`;
+                statusColorClass = "text-gray-400";
+            }
+            // 4. Closed
+            else {
+                mealName = "NO SESSIONS";
+                mealTime = "--:--";
+                displayStatus = "CLOSED";
+                statusColorClass = "text-gray-500";
+            }
+
+            // Update DOM
+            if (ticketMealLabel) ticketMealLabel.innerText = mealName;
+            if (ticketTimeLabel) ticketTimeLabel.innerText = mealTime;
+
+            if (ticketStatus) {
+                ticketStatus.innerText = displayStatus;
+                ticketStatus.className = `text-xs font-bold ${statusColorClass} ${statusPulse ? 'animate-pulse' : ''}`;
+            }
+
+            // Barcode Visibility
+            if (qrContent) {
+                try {
+                    JsBarcode("#ticket-barcode", qrContent, {
+                        format: "CODE128",
+                        lineColor: "#000",
+                        width: 3,
+                        height: 80,
+                        displayValue: false
+                    });
+                    ticketBarcode.style.opacity = "1";
+                    if (ticketBarcode.parentElement) ticketBarcode.parentElement.classList.remove('hidden');
+                } catch (e) {
+                    console.error("Barcode Error", e);
+                    ticketBarcode.style.opacity = "0";
+                }
+            } else {
+                ticketBarcode.style.opacity = "0";
+                // Optionally hide the svg container to maintain layout but show blank
+            }
+        };
+
+        updateBoardingPass();
+
+
+        // --- 3. DYNAMIC LIVE TOKEN UI ---
+        const updateTokenWallet = () => {
+            const container = document.getElementById('live-token-container');
+            if (!container) return;
+
+            const tokens = userData.tokens || {};
+            const currentSession = TokenManager.getCurrentSession();
+            const nextSession = TokenManager.getNextSession();
+
+            // Icon Map
+            const icons = {
+                breakfast: "fa-coffee",
+                lunch: "fa-hamburger",
+                dinner: "fa-moon",
+                snacks1: "fa-cookie",
+                snacks2: "fa-cookie-bite"
+            };
+
+            let html = '';
+
+            // 1. ACTIVE SESSION
+            if (currentSession) {
+                const tokenData = tokens[currentSession.type];
+                const state = TokenManager.getTokenState(currentSession.type, tokenData);
+
+                let bgClass = "bg-gray-800";
+                let statusText = "UNKNOWN";
+                let actionText = "VIEW TICKET";
+                // let iconClass = "text-white"; // unused
+                // let animClass = ""; // unused
+                let passType = currentSession.type;
+
+                if (state === "ACTIVE") {
+                    bgClass = "bg-gradient-to-br from-green-600 to-emerald-800 border-green-400/50 shadow-[0_0_25px_rgba(34,197,94,0.3)]";
+                    statusText = "READY TO REDEEM";
+                } else if (state === "REDEEMED") {
+                    bgClass = "bg-gradient-to-br from-blue-900 to-slate-900 border-blue-500/30 opacity-90";
+                    statusText = "REDEEMED";
+                    actionText = "VIEW RECEIPT";
+                } else if (state === "EXPIRED") {
+                    bgClass = "bg-gradient-to-br from-gray-800 to-red-900/30 border-red-500/20 grayscale opacity-75";
+                    statusText = "EXPIRED";
+                } else {
+                    bgClass = "bg-gray-700";
+                }
+
+                const icon = icons[currentSession.type] || "fa-utensils";
+
+                html = `
+                        <div onclick="downloadUserPass('${passType}')" 
+                             class="group relative overflow-hidden w-full ${bgClass} p-6 sm:p-8 rounded-3xl border flex flex-col md:flex-row items-center justify-between gap-6 cursor-pointer hover:scale-[1.01] hover:shadow-2xl transition-all duration-300">
+                            
+                            <!-- Background Decor -->
+                            <i class="fas ${icon} absolute text-[180px] opacity-[0.07] -right-4 -bottom-4 group-hover:scale-110 transition-transform duration-700 pointer-events-none"></i>
+                            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+
+                            <!-- Left: Info -->
+                            <div class="z-10 text-center md:text-left">
+                                <div class="flex items-center justify-center md:justify-start gap-3 mb-2">
+                                    <span class="bg-black/40 backdrop-blur-md px-3 py-1 rounded-full text-xs font-mono text-white/90 border border-white/10 shadow-sm">
+                                        <i class="far fa-clock mr-1"></i> ${currentSession.start} - ${currentSession.end}
+                                    </span>
+                                    <span class="${state === 'ACTIVE' ? 'bg-white text-green-700' : 'bg-black/40 text-gray-300'} px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                                        ${statusText}
+                                    </span>
+                                </div>
+                                <h2 class="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter drop-shadow-md mb-1">
+                                    ${currentSession.name}
+                                </h2>
+                                <p class="text-white/60 text-sm font-medium tracking-wide">Tap to open your ${currentSession.name} Token</p>
+                            </div>
+
+                            <!-- Right: Action Button -->
+                            <div class="z-10 mt-2 md:mt-0">
+                                <div class="${state === 'ACTIVE' ? 'animate-bounce' : ''} bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-3 transition-colors shadow-lg">
+                                    <i class="fas fa-qrcode text-xl"></i>
+                                    <span>${actionText}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+            }
+            // 2. UPCOMING SESSION
+            else if (nextSession) {
+                const icon = icons[nextSession.type] || "fa-clock";
+                html = `
+                        <div class="w-full bg-gray-800/40 border border-gray-700/50 border-dashed p-8 rounded-3xl flex flex-col items-center justify-center text-center gap-1 opacity-80 hover:opacity-100 transition-opacity">
+                            <i class="fas ${icon} text-4xl text-gray-600 mb-2"></i>
+                            <h4 class="text-gray-400 font-bold uppercase tracking-widest text-sm">Next: ${nextSession.name}</h4>
+                            <p class="text-gray-600 text-xs">Opens at ${nextSession.start}</p>
+                        </div>
+                    `;
+            }
+            // 3. NO ACTIVE SESSION
+            else {
+                html = `
+                        <div class="w-full bg-gray-800/20 border border-gray-700/30 border-dashed p-8 rounded-3xl flex flex-col items-center justify-center text-center gap-1">
+                            <i class="fas fa-utensils text-4xl text-gray-700 mb-2"></i>
+                            <h4 class="text-gray-500 font-bold uppercase tracking-widest text-sm">No Active Meals</h4>
+                            <p class="text-gray-600 text-xs">Check back later</p>
+                        </div>
+                    `;
+            }
+
+            container.innerHTML = html;
+        };
+
+        updateTokenWallet();
+
+        // --- 4. ATTENDANCE STATUS UI ---
+        const updateAttendanceUI = () => {
+            const container = document.getElementById('attendance-status-container');
+            if (!container) return;
+
+            const status = userData.attendance ? userData.attendance.status : 'Pending';
+            const lastUpdated = userData.attendance ? userData.attendance.lastUpdated : null;
+
+            let bgClass, statusText, iconClass, icon, title, desc, animClass;
+
+            if (status === 'Present') {
+                bgClass = "bg-gradient-to-br from-purple-600 to-indigo-900 border-purple-400/50 shadow-[0_0_25px_rgba(147,51,234,0.3)]";
+                statusText = "CONFIRMED";
+                iconClass = "text-white";
+                icon = "fa-check-circle";
+                title = "ATTENDANCE MARKED";
+                desc = lastUpdated ? `Marked on ${new Date(lastUpdated).toLocaleTimeString()}` : "You are marked present.";
+                animClass = "";
+            } else {
+                bgClass = "bg-gray-800 border-gray-700";
+                statusText = "PENDING";
+                iconClass = "text-yellow-500";
+                icon = "fa-clock";
+                title = "REGISTRATION PENDING";
+                desc = "Please visit the registration desk.";
+                animClass = "animate-pulse";
+            }
+
+            const html = `
+                    <div class="group relative overflow-hidden w-full ${bgClass} p-6 sm:p-8 rounded-3xl border flex flex-col md:flex-row items-center justify-between gap-6 hover:scale-[1.01] hover:shadow-2xl transition-all duration-300">
+                        <i class="fas ${icon} absolute text-[180px] opacity-[0.07] -right-4 -bottom-4 group-hover:scale-110 transition-transform duration-700 pointer-events-none"></i>
+                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                        <div class="z-10 text-center md:text-left">
+                            <div class="flex items-center justify-center md:justify-start gap-3 mb-2">
+                                <span class="${status === 'Present' ? 'bg-white text-purple-700' : 'bg-black/40 text-yellow-500'} px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm">${statusText}</span>
+                            </div>
+                            <h2 class="text-3xl sm:text-4xl font-black text-white uppercase tracking-tighter drop-shadow-md mb-1">${title}</h2>
+                            <p class="text-white/60 text-sm font-medium tracking-wide">${desc}</p>
+                        </div>
+                        <div class="z-10 mt-2 md:mt-0">
+                            <div class="${animClass} bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white px-6 py-4 rounded-full font-bold flex items-center gap-3 transition-colors shadow-lg">
+                                <i class="fas ${icon} text-2xl ${iconClass}"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            container.innerHTML = html;
+        };
+
+        updateAttendanceUI();
+
+
+        // --- PPT FORM LOGIC ---
+        function openPPTForm() {
+            const normalize = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+            const findVal = (term) => {
+                const key = Object.keys(userData).find(k => normalize(k).includes(normalize(term)));
+                return key ? userData[key] : '';
+            };
+
+            const params = new URLSearchParams();
+            params.append('entry.787829410', findVal('team name'));
+            params.append('entry.1387306896', findVal('leader name') || findVal('name') || findVal('teamLeaderName'));
+            params.append('entry.459947168', findVal('email'));
+            params.append('entry.1977563178', findVal('phone') || findVal('contact'));
+            params.append('entry.250627228', findVal('college'));
+            params.append('entry.2115579411', findVal('domain') || findVal('track') || findVal('category'));
+
+            window.location.href = `ppt-submission.html?${params.toString()}`;
+        }
+
+        // --- DOWNLOAD PASS FUNCTION ---
+        // --- DOWNLOAD PASS FUNCTION ---
+        function downloadUserPass(mealType) {
+            // Use live userData instead of stale localData
+            if (!userData || !userData.tokens || !userData.tokens[mealType] || !userData.tokens[mealType].issued) {
+                Swal.fire("Not Issued", "This token has not been issued yet.", "warning");
+                return;
+            }
+
+            const token = userData.tokens[mealType];
+
+            // Populate Data
+            document.getElementById('up-token-no').innerText = String(userData.id).slice(-6).toUpperCase();
+            document.getElementById('up-meal-type').innerText = mealType.replace('snacks', 'Snack ').toUpperCase();
+
+            // Layout Update: Participant Name instead of Team Name
+            // Prefer Leader Name -> Name -> Team Name
+            const participantName = userData['Leader Name'] || userData['name'] || userData['Team Name'] || userData['teamName'] || "Participant";
+            document.getElementById('up-participant-name').innerText = participantName;
+
+            const count = userData.memberCount || userData['Member Count'] || "1";
+            document.getElementById('up-count-main').innerText = String(count).padStart(2, '0');
+            document.getElementById('up-count-stub').innerText = String(count).padStart(2, '0');
+
+            // DATES & TIMES
+            // Issue Time: Use token timestamp or Fallback to now
+            const ts = token.timestamp || Date.now();
+            const dateObj = new Date(ts);
+
+            document.getElementById('up-date').innerText = dateObj.toLocaleDateString('en-GB'); // DD/MM/YYYY
+
+            const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('up-issue-time').innerText = timeStr;
+            document.getElementById('up-issue-time-stub').innerText = timeStr;
+
+            // Barcode (Both Main and Stub)
+            try {
+                // Stub Barcode
+                JsBarcode("#up-barcode", userData.id, {
+                    format: "CODE128",
+                    lineColor: "#000",
+                    width: 3,
+                    height: 80,
+                    displayValue: false
+                });
+                // Main Ticket Barcode (New Position)
+                JsBarcode("#up-barcode-main", userData.id, {
+                    format: "CODE128",
+                    lineColor: "#000",
+                    width: 3, // Increased from 2
+                    height: 80, // Increased from 50
+                    displayValue: false
+                });
+            } catch (e) { console.error("Barcode Error", e); }
+
+            // Generate
+            const template = document.getElementById('user-pass-template');
+
+            Swal.fire({
+                title: 'Generating Pass...',
+                didOpen: () => Swal.showLoading()
+            });
+
+            html2canvas(template, {
+                scale: 1,
+                logging: false,
+                useCORS: true,
+                allowTaint: true
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Pass_${mealType}_${userData.id}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+                Swal.close();
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+
+</html>

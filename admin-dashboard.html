@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Proto-Thon '26</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- SheetJS -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body {
+            font-family: 'ui-sans-serif', 'system-ui', 'sans-serif';
+        }
+
+        /* Custom scrollbar */
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for IE, Edge and Firefox */
+        html {
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-black/80 backdrop-blur-md border-b border-white/10 p-4 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-shield-alt text-red-500 text-2xl"></i>
+                <h1 class="text-xl font-bold font-mono">ADMIN<span class="text-red-500">_PANEL</span></h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="text-gray-400 hover:text-white flex items-center gap-2 text-sm">
+                    <i class="fas fa-home"></i> <span class="hidden md:inline">Home</span>
+                </a>
+                <span id="last-updated" class="text-xs text-gray-500 hidden md:block"></span>
+                <button onclick="window.location.href='login.html'"
+                    class="px-4 py-2 text-sm bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
+                    Logout <i class="fas fa-sign-out-alt ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <div class="container mx-auto p-4 md:p-8 flex-1">
+
+        <!-- Controls -->
+        <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h2 class="text-2xl font-bold">Registered Teams</h2>
+                <p class="text-gray-400 text-sm">Overview of all Proto-Thon '26 participants</p>
+            </div>
+            <div class="flex flex-col md:flex-row gap-2 items-end md:items-center">
+
+                <!-- Google Sheet Sync Input -->
+                <div class="flex items-center gap-2 bg-gray-800 p-1 rounded-lg border border-gray-600">
+                    <input type="text" id="script-url" placeholder="Google Script URL"
+                        class="bg-transparent border-none text-xs text-white px-2 w-32 md:w-48 focus:outline-none truncate">
+                    <button onclick="saveScriptUrl()" class="text-green-400 hover:text-green-300 px-2"
+                        title="Save URL"><i class="fas fa-save"></i></button>
+                    <button onclick="showSyncHelp()" class="text-gray-400 hover:text-white px-2" title="Help"><i
+                            class="fas fa-question-circle"></i></button>
+                </div>
+
+                <!-- Firebase Status -->
+                <div class="flex items-center gap-2 bg-gray-800 p-2 rounded-lg border border-gray-600">
+                    <div id="connection-status" class="w-2 h-2 rounded-full bg-red-500"></div>
+                    <span id="connection-text" class="text-xs text-gray-400">Offline</span>
+                </div>
+
+                <button onclick="syncAllData()"
+                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-lg shadow-blue-900/20 text-sm flex items-center">
+                    <i class="fas fa-sync mr-2"></i> Refresh
+                </button>
+
+                <button onclick="exportTableToCSV()"
+                    class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors shadow-lg shadow-green-900/20 text-sm">
+                    <i class="fas fa-download mr-2"></i> Export
+                </button>
+            </div>
+        </div>
+
+        <!-- NEW: Logistics & Direct Messaging Console -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+
+            <!-- SPLIT LOGISTICS & ATTENDANCE -->
+            <div class="flex flex-col gap-6">
+                <!-- 1. LOGISTICS SCANNER & DETAILS -->
+                <div class="bg-gray-800 rounded-xl border border-gray-700 p-6 shadow-lg relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl -mr-16 -mt-16">
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-blue-400">
+                        <i class="fas fa-barcode"></i> Logistics & Details
+                    </h3>
+
+                    <!-- Scanner Input -->
+                    <div class="mb-6">
+                        <label class="block text-gray-400 text-xs uppercase font-bold mb-2">Scan Team Barcode</label>
+                        <div class="flex items-center gap-2">
+                            <div class="relative flex-1">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                    <i class="fas fa-qrcode"></i>
+                                </span>
+                                <input type="text" id="scanner-input"
+                                    class="w-full bg-black/50 border border-blue-500/50 rounded-lg py-3 pl-10 pr-4 text-white placeholder-gray-600 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none transition-all font-mono tracking-wider"
+                                    placeholder="Click here & Scan..." autocomplete="off">
+                            </div>
+                            <button onclick="manualScan()"
+                                class="px-4 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg text-white font-bold transition-colors">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div id="scan-status" class="text-xs mt-2 h-4 text-gray-500">Ready to scan...</div>
+                    </div>
+
+                    <!-- Selected Team Info -->
+                    <div id="logistics-info"
+                        class="opacity-50 pointer-events-none transition-opacity bg-black/20 p-4 rounded-lg border border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div class="w-full">
+                            <div class="text-gray-500 text-xs uppercase font-bold">Selected Team</div>
+                            <div class="text-white font-bold text-xl truncate" id="log-team-name">--</div>
+                            <div class="text-blue-400 font-mono text-sm" id="log-team-id">--</div>
+                        </div>
+
+                        <!-- Seat & Members Input -->
+                        <div class="flex gap-2 items-end">
+                            <div>
+                                <label class="text-[9px] text-gray-500 uppercase font-bold">Seat</label>
+                                <input type="text" id="log-seat-input"
+                                    class="w-16 bg-transparent border-b border-gray-600 text-white font-mono font-bold text-sm focus:outline-none focus:border-blue-400"
+                                    placeholder="A-00">
+                            </div>
+                            <div>
+                                <label class="text-[9px] text-gray-500 uppercase font-bold">Count</label>
+                                <input type="number" id="log-member-count"
+                                    class="w-12 bg-transparent border-b border-gray-600 text-white font-mono font-bold text-sm focus:outline-none focus:border-blue-400"
+                                    placeholder="0">
+                            </div>
+                            <button onclick="saveLogistics()" class="text-blue-400 hover:text-white mb-1"><i
+                                    class="fas fa-save"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. MARK REGISTRATION (ATTENDANCE) -->
+                <div id="attendance-panel"
+                    class="opacity-50 pointer-events-none transition-opacity bg-gray-800 rounded-xl border border-gray-700 p-6 shadow-lg border-l-4 border-l-purple-500">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2 text-purple-400">
+                        <i class="fas fa-clipboard-check"></i> Mark Registration
+                    </h3>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-sm text-gray-400">Mark team as Present in venue.</p>
+                            <p class="text-xs text-green-400 mt-1 hidden" id="attn-msg">Updates User Dashboard
+                                instantly.</p>
+                        </div>
+                        <button onclick="toggleAttendance()" id="btn-attendance"
+                            class="px-6 py-2 rounded-lg font-bold uppercase tracking-wider text-sm transition-all bg-gray-700 text-gray-400 border border-gray-600 hover:bg-gray-600">
+                            Mark Attendance
+                        </button>
+                    </div>
+                    <!-- Moved Generate Pass here as it relates to attendance/entry -->
+                    <button onclick="downloadPass()"
+                        class="mt-4 w-full py-2 bg-gray-700/50 hover:bg-gray-700 text-gray-300 text-xs rounded border border-gray-600 flex items-center justify-center gap-2">
+                        <i class="fas fa-file-download"></i> Generate Boarding Pass
+                    </button>
+                </div>
+
+                <!-- 3. ISSUE FOOD TOKENS -->
+                <div id="token-hub"
+                    class="opacity-50 pointer-events-none transition-opacity bg-gray-800 rounded-xl border border-gray-700 p-6 shadow-lg border-l-4 border-l-yellow-500">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2 text-yellow-500">
+                        <i class="fas fa-utensils"></i> Issue Food Tokens
+                    </h3>
+
+                    <!-- AUTO-ISSUE HEADER + TEST MODE -->
+                    <div
+                        class="mb-4 bg-gray-900/50 p-2 rounded-lg border border-gray-600 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-400 font-bold uppercase">Meals activate by time.</span>
+                            <!-- TEST MODE TOGGLE -->
+                            <label
+                                class="flex items-center gap-1 cursor-pointer select-none border border-gray-700 rounded px-2 py-0.5 bg-gray-800 hover:bg-gray-700 transition">
+                                <input type="checkbox" id="test-mode-toggle"
+                                    class="form-checkbox h-3 w-3 text-blue-500 rounded focus:ring-0"
+                                    onchange="renderCurrentTeam()">
+                                <span class="text-[10px] text-gray-300 font-bold uppercase">Test Mode</span>
+                            </label>
+                        </div>
+                        <span id="admin-clock" class="text-xs text-blue-400 font-mono font-bold">--:--</span>
+                    </div>
+
+                    <div class="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                        <button onclick="toggleToken('breakfast')" id="btn-token-breakfast"
+                            class="p-3 rounded-xl bg-gray-700/50 border border-gray-600 hover:border-gray-400 transition-all flex flex-col items-center gap-2 group">
+                            <i
+                                class="fas fa-coffee text-xl text-gray-500 group-hover:text-yellow-400 transition-colors"></i>
+                            <span class="text-[9px] text-gray-400 font-bold uppercase">Breakfast</span>
+                        </button>
+                        <button onclick="toggleToken('lunch')" id="btn-token-lunch"
+                            class="p-3 rounded-xl bg-gray-700/50 border border-gray-600 hover:border-gray-400 transition-all flex flex-col items-center gap-2 group">
+                            <i
+                                class="fas fa-hamburger text-xl text-gray-500 group-hover:text-orange-400 transition-colors"></i>
+                            <span class="text-[9px] text-gray-400 font-bold uppercase">Lunch</span>
+                        </button>
+                        <button onclick="toggleToken('dinner')" id="btn-token-dinner"
+                            class="p-3 rounded-xl bg-gray-700/50 border border-gray-600 hover:border-gray-400 transition-all flex flex-col items-center gap-2 group">
+                            <i
+                                class="fas fa-moon text-xl text-gray-500 group-hover:text-purple-400 transition-colors"></i>
+                            <span class="text-[9px] text-gray-400 font-bold uppercase">Dinner</span>
+                        </button>
+                        <button onclick="toggleToken('snacks1')" id="btn-token-snacks1"
+                            class="p-3 rounded-xl bg-gray-700/50 border border-gray-600 hover:border-gray-400 transition-all flex flex-col items-center gap-2 group">
+                            <i
+                                class="fas fa-cookie text-xl text-gray-500 group-hover:text-pink-400 transition-colors"></i>
+                            <span class="text-[9px] text-gray-400 font-bold uppercase">Snk 1</span>
+                        </button>
+                        <button onclick="toggleToken('snacks2')" id="btn-token-snacks2"
+                            class="p-3 rounded-xl bg-gray-700/50 border border-gray-600 hover:border-gray-400 transition-all flex flex-col items-center gap-2 group">
+                            <i
+                                class="fas fa-cookie-bite text-xl text-gray-500 group-hover:text-pink-400 transition-colors"></i>
+                            <span class="text-[9px] text-gray-400 font-bold uppercase">Snk 2</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HIDDEN TEMPLATE FOR GENERATION (BOARDING PASS STYLE) -->
+            <div style="position: absolute; left: -9999px; top: -9999px;">
+                <div id="pass-template" class="w-[850px] h-[280px] flex bg-white font-sans overflow-hidden shadow-2xl">
+                    <!-- Main Ticket (Left 70%) -->
+                    <div class="w-[70%] border-r-2 border-dashed border-gray-300 relative flex flex-col">
+                        <!-- Header -->
+                        <div
+                            class="h-20 bg-[#1a1464] text-white flex items-center px-8 justify-between relative overflow-hidden">
+                            <!-- BG Pattern -->
+                            <div
+                                class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+                            </div>
+
+                            <div class="z-10">
+                                <h1 class="text-3xl font-bold tracking-wider font-serif">PRINCE</h1>
+                                <p class="text-[10px] uppercase tracking-wider text-blue-200">Dr K Vasudevan College of
+                                    Engineering and Technology</p>
+                            </div>
+                            <div class="text-right z-10">
+                                <h2 class="text-2xl font-bold tracking-tight">PROTO-THON'26</h2>
+                                <p class="text-xs font-bold bg-white/20 px-2 py-0.5 rounded inline-block mt-1">FOOD
+                                    TOKEN</p>
+                            </div>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="flex-1 p-8 grid grid-cols-5 gap-6 relative z-10">
+                            <!-- Col 1 -->
+                            <div class="col-span-2 space-y-6">
+                                <div>
+                                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Token No
+                                    </p>
+                                    <p class="text-xl font-bold text-gray-900" id="pass-token-no">--</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Meal</p>
+                                    <p class="text-xl font-bold text-gray-900 uppercase" id="pass-meal-type">--</p>
+                                </div>
+                            </div>
+
+                            <!-- Col 2 -->
+                            <div class="col-span-3 space-y-6">
+                                <div class="flex items-end justify-between">
+                                    <div class="flex-1">
+                                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+                                            Participant Name</p>
+                                        <p class="text-2xl font-bold text-gray-900 truncate max-w-[280px]"
+                                            id="pass-participant-name">--</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">COUNT
+                                        </p>
+                                        <p class="text-3xl font-extrabold text-[#1a1464]" id="pass-count-main">04</p>
+                                    </div>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="flex gap-12">
+                                        <div>
+                                            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+                                                Date</p>
+                                            <p class="text-lg font-bold text-gray-900">21/02/2026</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+                                                Boarding Time</p>
+                                            <p class="text-lg font-bold text-gray-900">08:00 AM</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Barcode Full Width Row (Moved Left & Increased Size) -->
+                            <div class="col-span-full mt-4 flex justify-start">
+                                <svg id="pass-barcode-main" class="h-24 w-[450px] ml-[-20px]"></svg>
+                            </div>
+                        </div>
+
+                        <!-- Watermark -->
+                        <div
+                            class="absolute inset-0 top-20 flex items-center justify-center opacity-5 pointer-events-none z-0">
+                            <i class="fas fa-shield-alt text-9xl text-blue-900"></i>
+                        </div>
+                    </div>
+
+                    <!-- Stub (Right 30%) -->
+                    <div class="w-[30%] flex flex-col relative bg-gray-50">
+                        <!-- Header Stub -->
+                        <div
+                            class="h-20 bg-[#2a2474] text-white flex flex-col justify-center px-6 border-l border-white/10">
+                            <h2 class="text-lg font-bold">PROTO-THON'26</h2>
+                            <p class="text-[9px] opacity-80 uppercase tracking-wider">Food Token</p>
+                        </div>
+
+                        <!-- Body Stub -->
+                        <div class="p-6 flex-1 flex flex-col justify-between">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Area</p>
+                                    <p class="text-sm font-bold text-gray-800">CAMPUS</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Gate</p>
+                                    <p class="text-sm font-bold text-gray-800">08</p>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-end border-b border-gray-200 pb-4">
+                                <div>
+                                    <p class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Count</p>
+                                    <p class="text-3xl font-extrabold text-[#1a1464]" id="pass-count-stub">04</p>
+                                </div>
+                                <div class="text-right">
+                                    <i class="fas fa-utensils text-gray-300 text-2xl"></i>
+                                </div>
+                            </div>
+
+                            <!-- Barcode Strip -->
+                            <div class="mt-2 flex justify-center">
+                                <svg id="pass-barcode" class="w-full h-12"></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. DIRECT MESSAGING CONSOLE (Existing) -->
+            <div class="bg-gray-800 rounded-xl border border-gray-700 p-6 shadow-lg">
+                <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-purple-400">
+                    <i class="fas fa-paper-plane"></i> Direct Messaging Console
+                </h3>
+                <div class="space-y-4">
+                    <!-- Select Team -->
+                    <div>
+                        <label class="block text-gray-400 text-xs uppercase font-bold mb-2">Select Team</label>
+                        <select id="dm-team-select" onchange="loadTeamData()"
+                            class="w-full bg-black/40 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-purple-500 focus:outline-none transition-colors">
+                            <option value="">-- Load Data First --</option>
+                        </select>
+                    </div>
+
+                    <!-- Message & Score -->
+                    <div>
+                        <label class="block text-gray-400 text-xs uppercase font-bold mb-2">Admin Message</label>
+                        <textarea id="dm-message" rows="2"
+                            class="w-full bg-black/40 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-purple-500 focus:outline-none transition-colors"
+                            placeholder="Enter message here..."></textarea>
+                    </div>
+                    <div class="flex items-end gap-4">
+                        <div class="flex-1">
+                            <label class="block text-gray-400 text-xs uppercase font-bold mb-2">Score / Marks</label>
+                            <input type="number" id="dm-score"
+                                class="w-full bg-black/40 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-green-500 focus:outline-none transition-colors"
+                                placeholder="e.g. 95">
+                        </div>
+                        <button onclick="sendDirectUpdate()" id="btn-send-update"
+                            class="px-6 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg font-bold text-white shadow-lg shadow-purple-900/40 transition-all flex items-center gap-2">
+                            <i class="fas fa-satellite-dish"></i> Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                <div class="text-gray-400 text-xs uppercase font-bold">Total Teams</div>
+                <div class="text-3xl font-bold mt-1 text-white" id="stat-count">0</div>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                <div class="text-gray-400 text-xs uppercase font-bold">Colleges</div>
+                <div class="text-3xl font-bold mt-1 text-blue-400" id="stat-colleges">0</div>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                <div class="text-gray-400 text-xs uppercase font-bold">Depts</div>
+                <div class="text-3xl font-bold mt-1 text-purple-400" id="stat-depts">0</div>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 relative overflow-hidden">
+                <div class="text-gray-400 text-xs uppercase font-bold">Teams Scored</div>
+                <div class="text-3xl font-bold mt-1 text-yellow-400" id="stat-ppt">0</div>
+                <div class="absolute right-2 bottom-2 text-yellow-500/10 text-4xl"><i
+                        class="fas fa-file-powerpoint"></i></div>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 relative overflow-hidden">
+                <div class="text-gray-400 text-xs uppercase font-bold">Attendance Marked</div>
+                <div class="text-3xl font-bold mt-1 text-green-400" id="stat-attendance">0</div>
+                <div class="absolute right-2 bottom-2 text-green-500/10 text-4xl"><i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden shadow-2xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-900 text-gray-400 uppercase text-xs">
+                        <tr id="table-header">
+                            <th class="p-4 border-b border-gray-700">ID</th>
+                            <th class="p-4 border-b border-gray-700">Team Name</th>
+                            <th class="p-4 border-b border-gray-700">Leader</th>
+                            <th class="p-4 border-b border-gray-700">Email</th>
+                            <th class="p-4 border-b border-gray-700">Phone</th>
+                            <th class="p-4 border-b border-gray-700">Score</th>
+                            <th class="p-4 border-b border-gray-700">Msg</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="text-sm divide-y divide-gray-700">
+                        <tr>
+                            <td colspan="7" class="p-8 text-center text-gray-500">
+                                <span class="loading-spinner"></span> Loading Data...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG ---
+        const DB_URL = "https://protothon26-reg-default-rtdb.firebaseio.com";
+        const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwT9dO8yr3j6CZlRbybXnN_JGDu06f2Qe6CKXV0FCvo6g-OVJ05PIbgoFDmMwB5awXr/exec";
+
+        // --- DATA STATE ---
+        let currentData = [];        // Array of objects with 'id' injected
+
+        // --- TOKEN MANAGER (Shared Logic) ---
+        const TokenManager = {
+            mealWindows: [
+                { name: "Breakfast", start: "08:00", end: "09:30", type: "breakfast" },
+                { name: "Snacks 1", start: "11:00", end: "11:45", type: "snacks1" },
+                { name: "Lunch", start: "12:30", end: "14:00", type: "lunch" },
+                { name: "Snacks 2", start: "16:00", end: "16:45", type: "snacks2" },
+                { name: "Dinner", start: "21:00", end: "21:45", type: "dinner" }
+            ],
+
+            // Helper: Check if timestamp is today
+            isToday: (timestamp) => {
+                if (!timestamp) return false;
+                const date = new Date(timestamp);
+                const now = new Date();
+                return date.getDate() === now.getDate() &&
+                    date.getMonth() === now.getMonth() &&
+                    date.getFullYear() === now.getFullYear();
+            },
+
+            getNowMinutes: () => {
+                const now = new Date();
+                return now.getHours() * 60 + now.getMinutes();
+            },
+
+            parseTime: (timeStr) => {
+                const [h, m] = timeStr.split(':').map(Number);
+                return h * 60 + m;
+            },
+
+            getTokenState: (mealType, tokenData) => {
+                const window = TokenManager.mealWindows.find(w => w.type === mealType);
+                if (!window) return "INVALID";
+
+                // 1. Redeemed? (Check Daily Reset)
+                if (tokenData && tokenData.redeemed) {
+                    if (TokenManager.isToday(tokenData.redeemedAt || tokenData.timestamp)) {
+                        return "REDEEMED";
+                    }
+                }
+
+                // 2. Time Check
+                const isTestMode = document.getElementById('test-mode-toggle')?.checked;
+                if (isTestMode) return "ACTIVE";
+
+                const now = TokenManager.getNowMinutes();
+                const start = TokenManager.parseTime(window.start);
+                const end = TokenManager.parseTime(window.end);
+
+                if (now > end) return "EXPIRED";
+                if (now < start) return "UPCOMING";
+                return "ACTIVE";
+            },
+
+            getCurrentSession: () => {
+                const now = TokenManager.getNowMinutes();
+                return TokenManager.mealWindows.find(w => {
+                    const start = TokenManager.parseTime(w.start);
+                    const end = TokenManager.parseTime(w.end);
+                    return now >= start && now <= end;
+                });
+            }
+        };
+
+        window.onload = function () {
+            // Restore Script URL
+            const savedUrl = localStorage.getItem('gas_script_url') || DEFAULT_SCRIPT_URL;
+            document.getElementById('script-url').value = savedUrl;
+            if (!localStorage.getItem('gas_script_url')) localStorage.setItem('gas_script_url', DEFAULT_SCRIPT_URL);
+
+            // Initial Load
+            syncAllData();
+
+            // Auto-Refresh
+            setInterval(() => {
+                console.log("Auto-refreshing...");
+                syncAllData(true);
+            }, 10000);
+
+            // Clock Tick
+            setInterval(() => {
+                const now = new Date();
+                const clock = document.getElementById('admin-clock');
+                if (clock) clock.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }, 1000);
+        }
+
+        async function syncAllData(silent = false) {
+            const statusDot = document.getElementById('connection-status');
+            const statusText = document.getElementById('connection-text');
+
+            if (!silent) {
+                statusText.innerText = "Syncing...";
+                statusDot.classList.remove('bg-green-500', 'bg-red-500');
+                statusDot.classList.add('bg-yellow-500', 'animate-pulse');
+            }
+
+            try {
+                const response = await fetch(`${DB_URL}/registrations.json`);
+                if (!response.ok) throw new Error("Auth/Network Error");
+
+                const dataObj = await response.json();
+
+                if (dataObj) {
+                    // Convert Object of Objects to Array with ID
+                    currentData = Object.keys(dataObj).map(key => ({
+                        ...dataObj[key],
+                        id: key
+                    }));
+                } else {
+                    currentData = [];
+                }
+
+                // Render
+                renderTable(currentData);
+                updateStats(currentData);
+
+                statusDot.classList.remove('bg-yellow-500', 'bg-red-500', 'animate-pulse');
+                statusDot.classList.add('bg-green-500');
+                statusText.innerText = "Live";
+
+            } catch (e) {
+                console.error("Sync Failed", e);
+                if (!silent) Swal.fire('Sync Error', 'Could not fetch latest data.', 'error');
+
+                statusDot.classList.remove('bg-green-500', 'bg-yellow-500', 'animate-pulse');
+                statusDot.classList.add('bg-red-500');
+                statusText.innerText = "Error";
+            }
+        }
+
+        // --- RENDER LOGIC ---
+        function renderTable(data) {
+            populateTeamDropdown(data);
+
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-gray-500">No registrations found.</td></tr>`;
+                return;
+            }
+
+            let rowsHTML = '';
+            data.forEach((row, index) => {
+                const teamName = row.teamName || row['Team Name'] || '-';
+                const leader = row.teamLeaderName || row['Leader Name'] || '-';
+                const email = row.email || '-';
+                const phone = row.phone || '-';
+                // Robust key finding for score/msg
+                const msg = row.adminMessage || row['Admin Message'] || row.message || '';
+                const score = row.score || row['Score'] || '';
+
+                rowsHTML += `<tr class="hover:bg-gray-700/50 transition-colors">
+                    <td class="p-4 border-b border-gray-800 text-gray-500 font-mono text-xs">${index + 1}</td>
+                    <td class="p-4 border-b border-gray-800 text-white font-bold">${teamName}</td>
+                    <td class="p-4 border-b border-gray-800 text-gray-300">${leader}</td>
+                    <td class="p-4 border-b border-gray-800 text-gray-400 text-xs">${email}</td>
+                    <td class="p-4 border-b border-gray-800 text-gray-400 text-xs font-mono">${phone}</td>
+                    <td class="p-4 border-b border-gray-800 text-green-400 font-bold">${score}</td>
+                    <td class="p-4 border-b border-gray-800 text-gray-300 text-xs max-w-xs truncate" title="${msg}">${msg}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = rowsHTML;
+        }
+
+        function updateStats(data) {
+            document.getElementById('stat-count').innerText = data.length;
+            // Unique Colleges
+            const colleges = new Set(data.map(d => d.college || d.College).filter(Boolean));
+            document.getElementById('stat-colleges').innerText = colleges.size;
+            // Unique Depts
+            const depts = new Set(data.map(d => d.department || d.Department).filter(Boolean));
+            document.getElementById('stat-depts').innerText = depts.size;
+            // Scores Given (Pseudo-stat)
+            const scores = data.filter(d => d.score || d.Score).length;
+            document.getElementById('stat-ppt').innerText = scores;
+
+            // Attendance Marked
+            const attn = data.filter(d => d.attendance && d.attendance.status === 'Present').length;
+            const attnEl = document.getElementById('stat-attendance');
+            if (attnEl) attnEl.innerText = attn;
+        }
+
+        // --- DIRECT UPDATES ---
+        function populateTeamDropdown(data) {
+            const select = document.getElementById('dm-team-select');
+            // Save current selection if any
+            const val = select.value;
+
+            // Clear but keep first option
+            select.innerHTML = '<option value="">-- Select a Team --</option>';
+
+            const sorted = [...data].sort((a, b) => (a.teamName || '').localeCompare(b.teamName || ''));
+
+            sorted.forEach(row => {
+                const opt = document.createElement('option');
+                opt.value = row.id;
+                opt.innerText = row.teamName || "Unknown Team";
+                select.appendChild(opt);
+            });
+
+            if (val) select.value = val;
+        }
+
+        function loadTeamData() {
+            const id = document.getElementById('dm-team-select').value;
+            if (!id) return;
+
+            const row = currentData.find(r => r.id === id);
+            if (row) {
+                document.getElementById('dm-message').value = row.adminMessage || row.message || '';
+                document.getElementById('dm-score').value = row.score || '';
+            }
+        }
+
+        async function sendDirectUpdate() {
+            const id = document.getElementById('dm-team-select').value;
+            const message = document.getElementById('dm-message').value;
+            const score = document.getElementById('dm-score').value;
+
+            if (!id) {
+                Swal.fire('Error', 'Select a team first', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btn-send-update');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            btn.disabled = true;
+
+            try {
+                // 1. UPDATE FIREBASE (Primary)
+                const response = await fetch(`${DB_URL}/registrations/${id}.json`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminMessage: message,
+                        score: score
+                    })
+                });
+
+                if (response.ok) {
+
+                    // 2. PARALLEL SYNC TO GOOGLE SHEET (Secondary / Optional)
+                    const row = currentData.find(r => r.id === id);
+                    if (row && row.teamName) {
+                        // Don't await this, let it run in background/catch its own errors
+                        postUpdateToSheet(row.teamName, message, score).catch(err => console.warn("Background Sync Warning:", err));
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Updated!',
+                        text: 'Changes live in App. Syncing to Sheet in background...',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    syncAllData(true);
+                } else {
+                    throw new Error('Server Error');
+                }
+
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'Update failed.', 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // --- GOOGLE SHEET SYNC LOGIC ---
+        function saveScriptUrl() {
+            const url = document.getElementById('script-url').value;
+            if (url) {
+                localStorage.setItem('gas_script_url', url);
+                Swal.fire('Saved', 'Script URL updated', 'success');
+            }
+        }
+
+        function showSyncHelp() {
+            Swal.fire({
+                title: 'How to Enable Auto-Upload',
+                html: '<div class="text-left text-sm space-y-2">To write data back to Google Sheets:<br>1. Open your Sheet > Extensions > Apps Script.<br>2. Paste the provided <b>Sync Script</b> code.<br>3. Deploy as Web App (Access: Anyone).<br>4. Paste the <b>Web App URL</b> here.</div>',
+                icon: 'info'
+            });
+        }
+
+        async function postUpdateToSheet(teamName, message, score) {
+            const scriptUrl = localStorage.getItem('gas_script_url');
+            if (!scriptUrl) return;
+
+            // This bypasses complex POST/CORS issues by handling the update in 'doGet'
+            const targetUrl = new URL(scriptUrl);
+            targetUrl.searchParams.append('teamName', teamName);
+            if (message) targetUrl.searchParams.append('message', message);
+            if (score) targetUrl.searchParams.append('score', score);
+
+            // Fire and Forget GET request (no-cors)
+            // Note: We cannot read response in no-cors mode, but it triggers the script
+            await fetch(targetUrl.toString(), {
+                method: 'GET',
+                mode: 'no-cors',
+                cache: 'no-cache'
+            });
+
+            console.log("Sent update to Sheet for", teamName);
+        }
+
+        // --- EXPORT ---
+        function exportTableToCSV() {
+            if (currentData.length === 0) { Swal.fire('No Data'); return; }
+            const ws = XLSX.utils.json_to_sheet(currentData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Teams");
+            XLSX.writeFile(wb, "protothon_teams.xlsx");
+        }
+        // --- LOGISTICS & SCANNER LOGIC ---
+        let activeLogisticsId = null;
+        let activeLogisticsData = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Focus scanner on load
+            const scanner = document.getElementById('scanner-input');
+            if (scanner) {
+                scanner.focus();
+                scanner.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        handleScan(scanner.value);
+                        scanner.value = ''; // Clear for next scan
+                    }
+                });
+            }
+        });
+
+        function manualScan() {
+            const val = document.getElementById('scanner-input').value;
+            handleScan(val);
+            document.getElementById('scanner-input').value = '';
+        }
+
+        async function handleScan(input) {
+            if (!input || !currentData) return;
+            const status = document.getElementById('scan-status');
+
+            // Try Exact Match (ID)
+            let team = currentData.find(d => d.id === input.trim());
+
+
+            if (!team) {
+                status.innerText = "Team not found. Try searching name?";
+                status.className = "text-xs mt-2 h-4 text-red-400";
+                return;
+            }
+
+            status.innerText = "Team Found!";
+            status.className = "text-xs mt-2 h-4 text-green-400";
+
+            // Load Logistics Panel
+            loadLogisticsPanel(team);
+        }
+
+        function loadLogisticsPanel(team) {
+            activeLogisticsId = team.id;
+            activeLogisticsData = team;
+
+            // UI Visibility (Split Panels)
+            // SAFELY REMOVE CLASSES IF ELEMENT EXISTS
+            const p1 = document.getElementById('logistics-info');
+            const p2 = document.getElementById('attendance-panel');
+            const p3 = document.getElementById('token-hub');
+
+            if (p1) p1.classList.remove('opacity-50', 'pointer-events-none');
+            if (p2) p2.classList.remove('opacity-50', 'pointer-events-none');
+            if (p3) p3.classList.remove('opacity-50', 'pointer-events-none');
+
+            // Team Details
+            document.getElementById('log-team-name').innerText = team.teamName || "Unknown";
+            document.getElementById('log-team-id').innerText = team.id;
+            document.getElementById('log-seat-input').value = team.seatNumber || "--";
+            document.getElementById('log-member-count').value = team.memberCount || team.teamSize || "1";
+
+            // Tokens
+            const tokens = team.tokens || {};
+            renderTokenBtn('breakfast', tokens.breakfast);
+            renderTokenBtn('lunch', tokens.lunch);
+            renderTokenBtn('dinner', tokens.dinner);
+            renderTokenBtn('snacks1', tokens.snacks1);
+            renderTokenBtn('snacks2', tokens.snacks2);
+        }
+
+        // --- MEMBER SELECTION LOGIC ---
+        let selectedMembers = [1, 2, 3, 4]; // Default All
+
+        function renderCurrentTeam() {
+            if (activeLogisticsData) {
+                loadLogisticsPanel(activeLogisticsData);
+            }
+        }
+
+        function toggleMemberSelect(id) {
+            const index = selectedMembers.indexOf(id);
+            const btn = document.getElementById(`btn-mem-${id}`);
+
+            if (index > -1) {
+                selectedMembers.splice(index, 1);
+                btn.classList.remove('bg-blue-600', 'ring-blue-400');
+                btn.classList.add('bg-gray-700', 'text-gray-400');
+            } else {
+                selectedMembers.push(id);
+                btn.classList.remove('bg-gray-700', 'text-gray-400');
+                btn.classList.add('bg-blue-600', 'ring-blue-400');
+            }
+        }
+
+        function selectAllMembers() {
+            selectedMembers = [1, 2, 3, 4];
+            [1, 2, 3, 4].forEach(id => {
+                const btn = document.getElementById(`btn-mem-${id}`);
+                if (btn) {
+                    btn.classList.remove('bg-gray-700', 'text-gray-400');
+                    btn.classList.add('bg-blue-600', 'ring-blue-400');
+                }
+            });
+        }
+
+        // --- TOKEN LOGIC (Admin Redemption Only) ---
+        async function toggleToken(type) {
+            if (!activeLogisticsId || !activeLogisticsData) {
+                Swal.fire('Scan Team', 'Please scan a team QR or enter ID first.', 'warning');
+                return;
+            }
+
+            const tokenData = activeLogisticsData.tokens ? activeLogisticsData.tokens[type] : null;
+            const state = TokenManager.getTokenState(type, tokenData);
+
+            // ACTION: ONLY ALLOW REDEEM IF ACTIVE
+            if (state === "ACTIVE") {
+                const { isConfirmed } = await Swal.fire({
+                    title: 'Redeem Token?',
+                    text: `Mark ${type.toUpperCase()} as used for this team?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Redeem',
+                    confirmButtonColor: '#22c55e', // Green
+                    cancelButtonColor: '#d33'
+                });
+
+                if (isConfirmed) {
+                    try {
+                        const path = `${DB_URL}/registrations/${activeLogisticsId}/tokens/${type}`;
+                        const payload = {
+                            redeemed: true,
+                            redeemedAt: Date.now(),
+                            timestamp: Date.now(), // Ensure we wrap with today's date if new
+                            issued: true // Implicitly issued
+                        };
+
+                        await fetch(`${path}.json`, {
+                            method: 'PATCH', // Update or Create
+                            body: JSON.stringify(payload)
+                        });
+
+                        // Update Local
+                        if (!activeLogisticsData.tokens) activeLogisticsData.tokens = {};
+                        if (!activeLogisticsData.tokens[type]) activeLogisticsData.tokens[type] = {};
+
+                        Object.assign(activeLogisticsData.tokens[type], payload);
+
+                        renderTokenBtn(type, activeLogisticsData.tokens[type]);
+                        Swal.fire('Redeemed', `Token marked as used.`, 'success');
+
+                    } catch (e) {
+                        console.error(e);
+                        Swal.fire('Error', 'Update failed', 'error');
+                    }
+                }
+            } else if (state === "REDEEMED") {
+                Swal.fire('Already Redeemed', `This token was used at ${new Date(tokenData.redeemedAt).toLocaleTimeString()}`, 'info');
+            } else if (state === "EXPIRED") {
+                Swal.fire('Expired', 'This meal window has passed.', 'error');
+            } else if (state === "UPCOMING") {
+                Swal.fire('Not Active', 'This meal window is not open yet.', 'warning');
+            }
+        }
+
+
+        function renderTokenBtn(type, tokenData) {
+            const btn = document.getElementById(`btn-token-${type}`);
+            const state = TokenManager.getTokenState(type, tokenData);
+
+            const labels = { 'breakfast': 'BFast', 'lunch': 'Lunch', 'dinner': 'Dinner', 'snacks1': 'Snk 1', 'snacks2': 'Snk 2' };
+            const icons = { 'breakfast': 'coffee', 'lunch': 'hamburger', 'dinner': 'moon', 'snacks1': 'cookie', 'snacks2': 'cookie-bite' };
+
+            // RESET CLASSES
+            btn.className = "p-3 rounded-xl transition-all flex flex-col items-center gap-2 group border";
+
+            if (state === "ACTIVE") {
+                // GREEN - READY TO REDEEM
+                btn.className += " bg-green-600/20 border-green-500 hover:bg-green-600/30 cursor-pointer animate-pulse";
+                btn.innerHTML = `<i class="fas fa-${icons[type]} text-green-400 text-xl"></i>
+                                 <span class="text-[9px] text-green-400 font-bold uppercase">REDEEM</span>`;
+
+            } else if (state === "REDEEMED") {
+                // BLUE/DULL - DONE
+                btn.className += " bg-blue-900/20 border-blue-500/30 opacity-75 cursor-pointer";
+                btn.innerHTML = `<i class="fas fa-check-circle text-blue-400 text-xl"></i>
+                                 <span class="text-[9px] text-blue-400 font-bold uppercase">USED</span>`;
+
+            } else if (state === "EXPIRED") {
+                // RED - MISSED
+                btn.className += " bg-red-900/10 border-red-500/30 opacity-50 grayscale cursor-not-allowed";
+                btn.innerHTML = `<i class="fas fa-${icons[type]} text-red-500 text-xl"></i>
+                                 <span class="text-[9px] text-red-500 font-bold uppercase">EXPIRED</span>`;
+            } else {
+                // UPCOMING (Default)
+                btn.className += " bg-gray-800 border-gray-700 opacity-50 cursor-not-allowed";
+                btn.innerHTML = `<i class="fas fa-${icons[type]} text-gray-500 text-xl"></i>
+                                 <span class="text-[9px] text-gray-500 font-bold uppercase">${labels[type]}</span>`;
+            }
+        }
+
+        // --- SPECIAL DOWNLOAD FOR MEAL ---
+        async function downloadMealPass(mealType) {
+            if (!activeLogisticsId || !activeLogisticsData) return;
+
+            // Allow download even if not "issued" in DB, as issuance is now automatic/implicit
+            const teamName = activeLogisticsData.teamName || 'Team';
+            const count = (activeLogisticsData.memberCount || '4').toString();
+
+            // Generate a deterministic Token No based on ID and Meal
+            // e.g. PDKV-BF-001
+            const shortId = activeLogisticsData.id.replace(/[^0-9]/g, '').substr(-3).padStart(3, '0');
+            const mealCodes = { 'breakfast': 'BF', 'lunch': 'LU', 'dinner': 'DN', 'snacks1': 'S1', 'snacks2': 'S2' };
+            const tokenNo = `PDKV-${mealCodes[mealType] || 'XX'}-${shortId}`;
+
+            // Populate Template: New Participant Name logic
+            const participantName = activeLogisticsData['Leader Name'] || activeLogisticsData['name'] || activeLogisticsData['teamLeaderName'] || teamName || "Participant";
+            const participantEl = document.getElementById('pass-participant-name');
+            if (participantEl) participantEl.innerText = participantName;
+
+            document.getElementById('pass-count-main').innerText = count.padStart(2, '0');
+            document.getElementById('pass-count-stub').innerText = count.padStart(2, '0');
+
+            // NEW FIELDS
+            document.getElementById('pass-token-no').innerText = tokenNo;
+            document.getElementById('pass-meal-type').innerText = mealType.toUpperCase();
+
+            // Generate Barcode (Both Main and Stub)
+            try {
+                // Stub Barcode
+                JsBarcode("#pass-barcode", activeLogisticsData.id, {
+                    format: "CODE128",
+                    lineColor: "#000",
+                    width: 2,
+                    height: 40,
+                    displayValue: false
+                });
+                // Main Barcode (New Position)
+                JsBarcode("#pass-barcode-main", activeLogisticsData.id, {
+                    format: "CODE128",
+                    lineColor: "#000",
+                    width: 3, // Increased
+                    height: 80, // Increased
+                    displayValue: false
+                });
+            } catch (e) { }
+
+            // Generate Image
+            try {
+                const element = document.getElementById('pass-template');
+                await new Promise(r => setTimeout(r, 100));
+
+                const canvas = await html2canvas(element, { scale: 2, backgroundColor: null });
+                const link = document.createElement('a');
+                link.download = `${mealType.toUpperCase()}_${tokenNo}_${teamName.replace(/[^a-z0-9]/gi, '_')}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            } catch (e) { console.error(e); }
+        }
+
+        async function saveLogistics() {
+            if (!activeLogisticsId) return;
+            const seat = document.getElementById('log-seat-input').value;
+            const count = document.getElementById('log-member-count').value;
+
+            // Update Local
+            activeLogisticsData.seatNumber = seat;
+            activeLogisticsData.memberCount = count;
+
+            try {
+                await fetch(`${DB_URL}/registrations/${activeLogisticsId}.json`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({
+                        seatNumber: seat,
+                        memberCount: count
+                    })
+                });
+                Swal.fire({
+                    toast: true, position: 'top-end', icon: 'success',
+                    title: 'Logistics Saved', showConfirmButton: false, timer: 1500
+                });
+            } catch (e) {
+                Swal.fire('Error', 'Could not save data', 'error');
+            }
+        }
+
+        // --- DOWNLOAD PASS ---
+        async function downloadPass() {
+            if (!activeLogisticsId || !activeLogisticsData) return;
+
+            const count = document.getElementById('log-member-count').value || activeLogisticsData.memberCount || '0';
+            const teamName = activeLogisticsData.teamName || 'Team';
+
+            // Populate Template
+            document.getElementById('pass-team-name-main').innerText = teamName;
+            document.getElementById('pass-count-main').innerText = count.padStart(2, '0');
+            document.getElementById('pass-count-stub').innerText = count.padStart(2, '0');
+
+            // Generate Barcode
+            try {
+                JsBarcode("#pass-barcode", activeLogisticsData.id, {
+                    format: "CODE128",
+                    lineColor: "#000",
+                    width: 2,
+                    height: 40,
+                    displayValue: false
+                });
+            } catch (e) { console.warn("Barcode Gen Error", e); }
+
+            // Generate Image
+            try {
+                const element = document.getElementById('pass-template');
+                // Wait a moment for barcode rendering
+                await new Promise(r => setTimeout(r, 100));
+
+                const canvas = await html2canvas(element, { scale: 2, backgroundColor: null });
+                const link = document.createElement('a');
+                link.download = `${teamName.replace(/[^a-z0-9]/gi, '_')}_FoodPass.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'Could not generate pass', 'error');
+            }
+        }
+
+        // Deprecated: old saveSeat
+        function saveSeat() { saveLogistics(); }
+
+        // --- ATTENDANCE MARKING ---
+        async function toggleAttendance() {
+            if (!activeLogisticsId) return;
+
+            const currentStatus = activeLogisticsData.attendance ? activeLogisticsData.attendance.status : 'Absent';
+            const newStatus = currentStatus === 'Present' ? 'Absent' : 'Present';
+
+            // Optimistic UI Update
+            updateAttendanceUI(newStatus);
+
+            try {
+                const path = `${DB_URL}/registrations/${activeLogisticsId}/attendance`;
+                await fetch(`${path}.json`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        status: newStatus,
+                        lastUpdated: Date.now()
+                    })
+                });
+
+                // Update Local Data
+                if (!activeLogisticsData.attendance) activeLogisticsData.attendance = {};
+                activeLogisticsData.attendance.status = newStatus;
+
+                // Notify
+                const icon = newStatus === 'Present' ? 'success' : 'info';
+                Swal.fire({
+                    toast: true, position: 'top-end', icon: icon,
+                    title: `Marked ${newStatus}`, showConfirmButton: false, timer: 1000
+                });
+
+            } catch (e) {
+                console.error(e);
+                updateAttendanceUI(currentStatus); // Revert
+                Swal.fire('Error', 'Failed to update attendance', 'error');
+            }
+        }
+
+        function updateAttendanceUI(status) {
+            const btn = document.getElementById('btn-attendance');
+            const msg = document.getElementById('attn-msg');
+
+            if (status === 'Present') {
+                btn.innerText = "MARKED PRESENT";
+                btn.className = "px-6 py-2 rounded-lg font-bold uppercase tracking-wider text-sm transition-all bg-green-600 text-white shadow-[0_0_15px_rgba(34,197,94,0.4)] transform scale-105 border border-green-500";
+                if (msg) msg.classList.remove('hidden');
+            } else {
+                btn.innerText = "MARK ATTENDANCE";
+                btn.className = "px-6 py-2 rounded-lg font-bold uppercase tracking-wider text-sm transition-all bg-gray-700 text-gray-400 border border-gray-600 hover:bg-gray-600";
+                if (msg) msg.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+
+</html>
