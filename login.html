@@ -255,8 +255,11 @@
                     // Iterate through unique IDs
                     for (const id in data) {
                         const user = data[id];
-                        if (user && user.email && user.phone) {
-                            if (user.email.toLowerCase() === email.toLowerCase() && String(user.phone) === String(phone)) {
+                        const userEmail = user.email || user.emailAddress;
+                        const userPhone = user.phone || user.mobileNumber;
+
+                        if (userEmail && userPhone) {
+                            if (userEmail.toLowerCase() === email.toLowerCase() && String(userPhone) === String(phone)) {
                                 foundUser = user;
                                 foundUser.id = id; // Attach Firebase ID
                                 break;
