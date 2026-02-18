@@ -94,6 +94,14 @@
                     class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors shadow-lg shadow-green-900/20 text-sm">
                     <i class="fas fa-download mr-2"></i> Export
                 </button>
+                <button onclick="openAddTeamModal()"
+                    class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors shadow-lg shadow-purple-900/20 text-sm">
+                    <i class="fas fa-plus mr-2"></i> Add Participant
+                </button>
+                <button onclick="bulkSeedData()"
+                    class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-colors shadow-lg shadow-yellow-900/20 text-sm">
+                    <i class="fas fa-database mr-2"></i> Bulk Seed
+                </button>
             </div>
         </div>
 
@@ -438,13 +446,14 @@
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-gray-900 text-gray-400 uppercase text-xs">
                         <tr id="table-header">
-                            <th class="p-4 border-b border-gray-700">ID</th>
-                            <th class="p-4 border-b border-gray-700">Team Name</th>
-                            <th class="p-4 border-b border-gray-700">Leader</th>
-                            <th class="p-4 border-b border-gray-700">Email</th>
-                            <th class="p-4 border-b border-gray-700">Phone</th>
-                            <th class="p-4 border-b border-gray-700">Score</th>
-                            <th class="p-4 border-b border-gray-700">Msg</th>
+                            <th class="py-4 px-4 font-bold uppercase text-gray-400">ID</th>
+                            <th class="py-4 px-4 font-bold uppercase text-gray-400">Name</th>
+                            <th class="py-4 px-4 font-bold uppercase text-gray-400">Team</th>
+                            <th class="py-4 px-4 font-bold uppercase text-gray-400">Email</th>
+                            <th class="py-4 px-4 font-bold uppercase text-gray-400">Phone</th>
+                            <th class="py-4 px-4 font-bold uppercase text-gray-400">Count</th>
+                            <th class="py-4 px-4 font-bold uppercase text-gray-400">Score</th>
+                            <th class="py-4 px-4 font-bold uppercase text-gray-400">Msg</th>
                         </tr>
                     </thead>
                     <tbody id="table-body" class="text-sm divide-y divide-gray-700">
@@ -458,6 +467,96 @@
             </div>
         </div>
     </div>
+
+    <!-- ADD TEAM MODAL -->
+    <div id="add-team-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-gray-800 border border-gray-700 p-8 rounded-2xl w-full max-w-md relative shadow-2xl">
+            <button onclick="closeAddTeamModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <h2 class="text-2xl font-bold mb-6 text-purple-400 self-center text-center">Add New Participant</h2>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 font-bold mb-1">Participant Name</label>
+                    <input type="text" id="new-leader-name"
+                        class="w-full bg-black/40 border border-gray-600 rounded p-2 text-white focus:border-purple-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 font-bold mb-1">Team Name</label>
+                    <input type="text" id="new-team-name"
+                        class="w-full bg-black/40 border border-gray-600 rounded p-2 text-white focus:border-purple-500 outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 font-bold mb-1">Phone</label>
+                        <input type="tel" id="new-phone"
+                            class="w-full bg-black/40 border border-gray-600 rounded p-2 text-white focus:border-purple-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 font-bold mb-1">Member Count</label>
+                        <input type="number" id="new-count" value="1"
+                            class="w-full bg-black/40 border border-gray-600 rounded p-2 text-white focus:border-purple-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 font-bold mb-1">Email</label>
+                    <input type="email" id="new-email"
+                        class="w-full bg-black/40 border border-gray-600 rounded p-2 text-white focus:border-purple-500 outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 font-bold mb-1">Department</label>
+                        <input type="text" id="new-dept"
+                            class="w-full bg-black/40 border border-gray-600 rounded p-2 text-white focus:border-purple-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 font-bold mb-1">Year</label>
+                        <select id="new-year"
+                            class="w-full bg-black/40 border border-gray-600 rounded p-2 text-white focus:border-purple-500 outline-none">
+                            <option value="I">I</option>
+                            <option value="II">II</option>
+                            <option value="III">III</option>
+                            <option value="IV">IV</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 font-bold mb-1">Food Preference</label>
+                        <select id="new-food"
+                            class="w-full bg-black/40 border border-gray-600 rounded p-2 text-white focus:border-purple-500 outline-none">
+                            <option value="Non-Veg">Non-Veg</option>
+                            <option value="Veg">Veg</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 font-bold mb-1">City / State</label>
+                        <input type="text" id="new-city"
+                            class="w-full bg-black/40 border border-gray-600 rounded p-2 text-white focus:border-purple-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 font-bold mb-1">College</label>
+                    <input type="text" id="new-college"
+                        class="w-full bg-black/40 border border-gray-600 rounded p-2 text-white focus:border-purple-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 font-bold mb-1">Project Title</label>
+                    <input type="text" id="new-project"
+                        class="w-full bg-black/40 border border-gray-600 rounded p-2 text-white focus:border-purple-500 outline-none">
+                </div>
+
+                <button onclick="submitNewTeam()"
+                    class="w-full py-3 bg-purple-600 hover:bg-purple-500 rounded-xl font-bold text-white shadow-lg shadow-purple-900/20 mt-4 transition-all">
+                    Register Participant
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Seed Data -->
+    <script src="seed_data.js"></script>
 
     <script>
         // --- CONFIG ---
@@ -606,29 +705,39 @@
             tbody.innerHTML = '';
 
             if (data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-gray-500">No registrations found.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-gray-500">No registrations found.</td></tr>`;
                 return;
             }
 
             let rowsHTML = '';
-            data.forEach((row, index) => {
-                const teamName = row.teamName || row['Team Name'] || '-';
-                const leader = row.teamLeaderName || row['Leader Name'] || '-';
-                const email = row.email || '-';
-                const phone = row.phone || '-';
-                // Robust key finding for score/msg
+            data.forEach((row) => {
+                const teamId = row.id;
+                const name = row.name || row.teamLeaderName || 'Unknown';
+                const teamName = row.teamName || '-';
+                const email = row.emailAddress || row.email || '-';
+                const phone = row.mobileNumber || row.phone || '-';
+                const memberCount = row.memberCount || '1';
                 const msg = row.adminMessage || row['Admin Message'] || row.message || '';
                 const score = row.score || row['Score'] || '';
 
-                rowsHTML += `<tr class="hover:bg-gray-700/50 transition-colors">
-                    <td class="p-4 border-b border-gray-800 text-gray-500 font-mono text-xs">${index + 1}</td>
-                    <td class="p-4 border-b border-gray-800 text-white font-bold">${teamName}</td>
-                    <td class="p-4 border-b border-gray-800 text-gray-300">${leader}</td>
-                    <td class="p-4 border-b border-gray-800 text-gray-400 text-xs">${email}</td>
-                    <td class="p-4 border-b border-gray-800 text-gray-400 text-xs font-mono">${phone}</td>
-                    <td class="p-4 border-b border-gray-800 text-green-400 font-bold">${score}</td>
-                    <td class="p-4 border-b border-gray-800 text-gray-300 text-xs max-w-xs truncate" title="${msg}">${msg}</td>
-                </tr>`;
+                // Placeholder for statusDot, assuming it's not directly from data for now
+                const statusDot = ''; // Or implement logic to determine status
+
+                rowsHTML += `
+                    <tr class="border-b border-gray-700 hover:bg-white/5 transition-colors cursor-pointer" onclick="viewLogistics('${teamId}')">
+                        <td class="py-4 px-4 font-mono text-purple-400 relative">
+                             ${statusDot} ${teamId}
+                        </td>
+                         <td class="py-4 px-4 font-bold text-white">${name}</td>
+                        <td class="py-4 px-4 text-gray-300 font-bold">${teamName}</td>
+                         <td class="py-4 px-4 text-gray-400 text-sm">${email}</td>
+                        <td class="py-4 px-4 text-gray-400 text-sm">${phone}</td>
+                        <td class="py-4 px-4">
+                            <span class="bg-gray-800 text-gray-300 px-2 py-1 rounded text-xs font-bold">${memberCount}</span>
+                        </td>
+                        <td class="py-4 px-4 text-green-400 font-bold">${score}</td>
+                        <td class="py-4 px-4 text-gray-300 text-xs max-w-xs truncate" title="${msg}">${msg}</td>
+                    </tr>`;
             });
             tbody.innerHTML = rowsHTML;
         }
@@ -1171,6 +1280,144 @@
                 if (msg) msg.classList.add('hidden');
             }
         }
+    </script>
+
+    <script>
+        // --- ADD TEAM MODAL LOGIC ---
+        function openAddTeamModal() {
+            document.getElementById('add-team-modal').classList.remove('hidden');
+            document.getElementById('add-team-modal').classList.add('flex');
+        }
+
+        function closeAddTeamModal() {
+            document.getElementById('add-team-modal').classList.add('hidden');
+            document.getElementById('add-team-modal').classList.remove('flex');
+        }
+
+        async function submitNewTeam() {
+            const teamName = document.getElementById('new-team-name').value;
+            const leaderName = document.getElementById('new-leader-name').value;
+            const phone = document.getElementById('new-phone').value;
+            const count = document.getElementById('new-count').value;
+            const email = document.getElementById('new-email').value;
+            const dept = document.getElementById('new-dept').value;
+            const year = document.getElementById('new-year').value;
+            const food = document.getElementById('new-food').value;
+            const city = document.getElementById('new-city').value;
+            const college = document.getElementById('new-college').value;
+            const project = document.getElementById('new-project').value;
+
+            if (!leaderName || !teamName || !phone) {
+                Swal.fire("Error", "Please fill required fields (Name, Team, Phone)", "error");
+                return;
+            }
+
+            // Generate ID
+            const id = "P" + Math.floor(Math.random() * 100000);
+
+            const newTeam = {
+                teamName: teamName,
+                name: leaderName, // Using leaderName input as Name
+                teamLeaderName: leaderName, // Backwards compat
+                mobileNumber: phone,
+                memberCount: count,
+                emailAddress: email,
+                department: dept,
+                year: year,
+                foodPreference: food,
+                city: city,
+                collegeName: college,
+                projectTitle: project,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                // Save to Firebase
+                await fetch(`${DB_URL}/registrations/${id}.json`, {
+                    method: 'PUT',
+                    body: JSON.stringify(newTeam)
+                });
+
+                closeAddTeamModal();
+                Swal.fire("Success", "Team Added!", "success");
+                syncAllData(); // Refresh table
+
+                // Clear inputs
+                document.getElementById('new-team-name').value = '';
+                document.getElementById('new-leader-name').value = '';
+                document.getElementById('new-phone').value = '';
+                document.getElementById('new-email').value = '';
+                document.getElementById('new-dept').value = '';
+                document.getElementById('new-city').value = '';
+                document.getElementById('new-college').value = '';
+                document.getElementById('new-project').value = '';
+
+            } catch (e) {
+                console.error(e);
+                Swal.fire("Error", "Could not add team", "error");
+            }
+        }
+
+        // --- BULK SEED LOGIC ---
+        async function bulkSeedData() {
+            if (!confirm("Start Import? This will check for existing IDs and only add new ones from 'seed_data.js'.")) return;
+
+            if (typeof seedData === 'undefined') {
+                Swal.fire("Error", "seed_data.js not loaded!", "error");
+                return;
+            }
+
+            let addedCount = 0;
+            let errorCount = 0;
+
+            Swal.fire({
+                title: 'Importing...',
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            for (const team of seedData) {
+                try {
+                    // Check existence (Optional, or just overwrite/merge)
+                    // We will simple PUT using the ID from seed data
+                    const id = team.id;
+
+                    // Remap seed data keys to schema if needed
+                    const dataToSave = {
+                        teamName: team.teamName,
+                        name: team.name,
+                        teamLeaderName: team.name, // Mapping Name to LeaderName for compat
+                        emailAddress: team.email,
+                        mobileNumber: team.phone,
+                        gender: team.gender,
+                        memberCount: team.memberCount,
+                        department: team.department || "",
+                        year: team.year || "",
+                        foodPreference: team.foodPreference || "",
+                        city: team.city || "",
+                        collegeName: team.college || "", // Handle missing
+                        projectTitle: team.projectTitle || "",
+                        timestamp: new Date().toISOString()
+                    };
+
+                    await fetch(`${DB_URL}/registrations/${id}.json`, {
+                        method: 'PUT', // Or PATCH
+                        body: JSON.stringify(dataToSave)
+                    });
+
+                    addedCount++;
+
+                } catch (e) {
+                    console.error("Failed to import", team.id, e);
+                    errorCount++;
+                }
+            }
+
+            Swal.fire("Import Complete", `Added: ${addedCount}, Errors: ${errorCount}`, "success");
+            syncAllData();
+        }
+    </script>
     </script>
 </body>
 
